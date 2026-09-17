@@ -115,6 +115,12 @@
         .custom-shadow { box-shadow: 0 4px 20px rgba(46, 50, 48, 0.06); }
         .page-view { transition: opacity 0.2s ease-in-out; }
     </style>
+    
+    <!-- Firebase SDK (Compat version for Vanilla JS: Authentication & Cloud Firestore) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
 </head>
 <body class="bg-background text-on-background min-h-screen relative">
 
@@ -138,6 +144,18 @@
             </header>
             
             <section class="bg-surface-container-low p-8 rounded-xl shadow-[0_4px_20px_rgba(46,50,48,0.06)] border border-outline-variant/30 backdrop-blur-sm space-y-6">
+                <!-- Database Mode Status Pill -->
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-surface border border-outline-variant/40 text-xs shadow-2xs">
+                    <span class="text-on-surface-variant flex items-center gap-1.5 font-bold">
+                        <span id="login-db-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                        <span id="login-db-text">ฐานข้อมูล: LocalStorage</span>
+                    </span>
+                    <button type="button" onclick="openDatabaseConfigModal()" class="text-primary hover:text-primary-dark font-bold hover:underline flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">settings</span>
+                        <span>ตั้งค่า Cloud DB</span>
+                    </button>
+                </div>
+
                 <form class="space-y-6" id="loginForm" onsubmit="handleLoginSubmit(event)">
                     <div class="space-y-2">
                         <label class="block font-label text-sm font-semibold text-on-surface-variant px-1" for="email">ที่อยู่อีเมล</label>
@@ -276,7 +294,11 @@
                 <span class="material-symbols-outlined text-primary cursor-pointer active:scale-95 transition-transform" onclick="showAlert('เมนูนำทางหลัก')">menu</span>
                 <span class="font-headline text-2xl font-bold text-primary dark:text-primary-fixed-dim">FitHero</span>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button id="db-status-btn" onclick="openDatabaseConfigModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200">
+                    <span id="db-status-dot" class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span id="db-status-text">💾 Local Storage</span>
+                </button>
                 <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container cursor-pointer active:scale-90 transition-transform" onclick="navigateTo('page-profile')">
                     <img class="profile-avatar-img w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxX__UdBdZAAeKwTeijFY9w1GQRBIjI7ZT_puRX0IcjazPSzfR7Bk3PCywhyD_n4IC4iO83TOiSk_X6ZT-jL7Yh5P_Pl8XUJ0TH9bHw1-uZJ4WZqqQKZUdrY_UqVYimaaIlg2GAUpYCbMJyT4bi-MSxDqUAu_nWiCznBlQDAuu3zLB90DjSQE-XxiC5rdvRqkjKcyTnN00980UI3YeahLI2DXhyjZx0GzPpK7ZPcg54FxohWXgqlaoA6Zqkvwm-Sgv0P1uvBMznhpk"/>
                 </div>
@@ -1257,6 +1279,17 @@
                             </div>
                         </div>
                         <span class="material-symbols-outlined text-on-surface-variant/40 group-hover:translate-x-1 transition-transform">chevron_right</span>
+                    <button class="w-full flex items-center justify-between px-5 py-4 hover:bg-surface-container-high transition-colors active:bg-surface-container-highest group" onclick="openDatabaseConfigModal()">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-lg">cloud_sync</span>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-sm font-bold text-on-surface">ตั้งค่าฐานข้อมูล (Firebase Firestore)</p>
+                                <p class="text-xs text-on-surface-variant" id="profile-db-desc">เชื่อมต่อบันทึกข้อมูลบนคลาวด์ออนไลน์</p>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined text-on-surface-variant/40 group-hover:translate-x-1 transition-transform">chevron_right</span>
                     </button>
 
                     <button class="w-full flex items-center justify-between px-5 py-4 hover:bg-error-container/20 transition-colors active:bg-error-container/40 group" onclick="confirmLogout()">
@@ -1627,6 +1660,63 @@
                 </button>
             </div>
         </div>
+    <!-- Database Configuration Modal (Firebase Cloud Firestore) -->
+    <div id="database-config-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+        <div class="bg-surface p-6 md:p-8 rounded-2xl max-w-lg w-full shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+            <div class="flex justify-between items-center border-b border-outline-variant/30 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">🔥</span>
+                    <div>
+                        <h3 class="font-headline text-lg font-bold text-primary">ตั้งค่าฐานข้อมูล (Cloud Firestore)</h3>
+                        <p class="text-xs text-on-surface-variant">เชื่อมต่อฐานข้อมูลออนไลน์ Google Firebase ฟรี</p>
+                    </div>
+                </div>
+                <span class="material-symbols-outlined cursor-pointer text-outline hover:text-on-surface" onclick="closeDatabaseConfigModal()">close</span>
+            </div>
+
+            <!-- Current Status Box -->
+            <div id="modal-db-status-box" class="p-4 rounded-xl flex items-center justify-between border">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- 4 Easy Steps Guide -->
+            <div class="bg-surface-container-low p-4 rounded-xl space-y-2 border border-outline-variant/20">
+                <p class="text-xs font-bold text-primary uppercase tracking-wider">📋 4 ขั้นตอนง่ายๆ ในการเชื่อมต่อฐานข้อมูล:</p>
+                <ol class="text-xs text-on-surface-variant space-y-1.5 list-decimal list-inside leading-relaxed font-body">
+                    <li>ไปที่ <a href="https://console.firebase.google.com/" target="_blank" class="text-primary font-bold underline">Firebase Console</a> แล้วกด <strong>"Add project"</strong></li>
+                    <li>เข้าเมนู <strong>Authentication</strong> &gt; แถบ <strong>Sign-in method</strong> &gt; กดเปิดใช้งาน <strong>Email/Password</strong></li>
+                    <li>เข้าเมนู <strong>Firestore Database</strong> &gt; กด <strong>Create database</strong> (เลือก Start in test mode)</li>
+                    <li>กดรูปเฟือง ⚙️ <strong>Project settings</strong> &gt; เลื่อนลงมาที่ <strong>Your apps</strong> &gt; เลือกเว็บ <strong>&lt;/&gt;</strong> แล้วคัดลอกโค้ด <code class="text-primary font-bold">firebaseConfig</code> มาวางด้านล่างนี้</li>
+                </ol>
+            </div>
+
+            <!-- Config Form -->
+            <div class="space-y-2.5">
+                <label class="block text-xs font-bold text-on-surface-variant" for="firebase-config-input">
+                    วางโค้ด firebaseConfig (JSON หรือ Object) ที่นี่:
+                </label>
+                <textarea id="firebase-config-input" rows="5" class="w-full p-3 font-mono text-xs bg-surface-container-lowest border border-outline-variant/50 rounded-xl focus:ring-2 focus:ring-primary focus:outline-none" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "fithero-xxx.firebaseapp.com",
+  "projectId": "fithero-xxx",
+  "storageBucket": "fithero-xxx.appspot.com",
+  "messagingSenderId": "123456789",
+  "appId": "1:1234:web:abcd..."
+}'></textarea>
+                <p class="text-[11px] text-on-surface-variant">💡 หรือสามารถเปิดแก้ไขไฟล์ <code class="bg-surface-container px-1.5 py-0.5 rounded font-mono text-primary font-bold">firebase-config.js</code> ในโฟลเดอร์โปรเจกต์ได้โดยตรง</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-2 pt-2">
+                <button onclick="saveAndConnectFirebaseFromUI()" class="flex-1 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl active:scale-95 transition-all text-xs flex items-center justify-center gap-1.5 shadow-md">
+                    <span class="material-symbols-outlined text-base">cloud_sync</span>
+                    <span>บันทึกและเชื่อมต่อ Cloud Firestore</span>
+                </button>
+                <button onclick="switchToLocalDatabaseMode()" class="px-4 py-3 bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-bold rounded-xl transition-all text-xs">
+                    ใช้ LocalStorage
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- JAVASCRIPT CONTROLLER -->
@@ -1648,6 +1738,309 @@
 
         let registeredUsers = JSON.parse(localStorage.getItem('fithero_registered_users')) || {};
         let isProfileEditing = false;
+        let currentUser = null;
+        let currentUserId = null;
+        let cloudSyncTimeout = null;
+
+        // ฟังก์ชันซิงค์ข้อมูลลง LocalStorage และ Cloud Firestore (แบบ Debounce)
+        function syncDataToCloud() {
+            // 1. บันทึกลง LocalStorage ทุกครั้งทันที
+            localStorage.setItem('fithero_user_coins', userCoins);
+            localStorage.setItem('fithero_user_exp', totalAccumulatedEXP);
+            localStorage.setItem('fithero_user_profile', JSON.stringify(userProfileData));
+            localStorage.setItem('fithero_tdee_goal', targetTDEEGoal);
+            localStorage.setItem('fithero_missions_data', JSON.stringify(missionsDetailData));
+
+            // 2. ถ้าเชื่อมต่อ Firebase และล็อกอินอยู่ ให้ส่งขึ้น Cloud Firestore
+            if (typeof isFbInitialized !== 'undefined' && isFbInitialized && currentUserId) {
+                clearTimeout(cloudSyncTimeout);
+                cloudSyncTimeout = setTimeout(async () => {
+                    const payload = {
+                        coins: userCoins,
+                        totalAccumulatedEXP: totalAccumulatedEXP,
+                        name: userProfileData.name,
+                        age: userProfileData.age,
+                        gender: userProfileData.gender,
+                        height: userProfileData.height,
+                        weight: userProfileData.weight,
+                        targetTDEEGoal: targetTDEEGoal,
+                        missions: missionsDetailData
+                    };
+                    if (typeof dbSaveUserData === 'function') {
+                        await dbSaveUserData(currentUserId, payload);
+                        console.log("☁️ ซิงค์ข้อมูลกับ Cloud Firestore เรียบร้อยแล้ว");
+                    }
+                }, 500);
+            }
+        }
+
+        // ฟังก์ชันนำข้อมูลจาก Firestore มาอัปเดตลง UI ของแอป
+        function applyUserDataToApp(data) {
+            if (!data) return;
+            if (data.name) {
+                userProfileData.name = data.name;
+                document.querySelectorAll('.user-name-text').forEach(el => el.innerText = data.name);
+            }
+            if (data.age) {
+                userProfileData.age = data.age;
+                const viewAge = document.getElementById('profile-view-age');
+                if (viewAge) viewAge.innerText = data.age;
+            }
+            if (data.gender) {
+                userProfileData.gender = data.gender;
+                const viewGender = document.getElementById('profile-view-gender');
+                if (viewGender) viewGender.innerText = data.gender;
+            }
+            if (data.height) {
+                userProfileData.height = data.height;
+                const viewHeight = document.getElementById('profile-view-height');
+                if (viewHeight) viewHeight.innerText = data.height;
+            }
+            if (data.weight) {
+                userProfileData.weight = data.weight;
+                const viewWeight = document.getElementById('profile-view-weight');
+                if (viewWeight) viewWeight.innerText = data.weight;
+            }
+            if (data.coins !== undefined) {
+                userCoins = Number(data.coins);
+            }
+            if (data.totalAccumulatedEXP !== undefined) {
+                totalAccumulatedEXP = Number(data.totalAccumulatedEXP);
+            }
+            if (data.targetTDEEGoal !== undefined) {
+                targetTDEEGoal = Number(data.targetTDEEGoal);
+            }
+            if (data.missions && typeof data.missions === 'object') {
+                for (const k in data.missions) {
+                    if (missionsDetailData[k]) {
+                        Object.assign(missionsDetailData[k], data.missions[k]);
+                    }
+                }
+            }
+            if (data.avatar) {
+                document.querySelectorAll('.profile-avatar-img').forEach(img => {
+                    img.src = data.avatar;
+                });
+            }
+
+            calculateAndUpdateBMI();
+            renderMissionsUI();
+            updateTDEEDisplay();
+            updateStatsUI();
+        }
+
+        // ฟังก์ชันโหลดข้อมูลออฟไลน์จาก LocalStorage
+        function loadLocalStorageData() {
+            const savedCoins = localStorage.getItem('fithero_user_coins');
+            if (savedCoins !== null) userCoins = Number(savedCoins);
+
+            const savedEXP = localStorage.getItem('fithero_user_exp');
+            if (savedEXP !== null) totalAccumulatedEXP = Number(savedEXP);
+
+            const savedProfile = localStorage.getItem('fithero_user_profile');
+            if (savedProfile) {
+                try {
+                    userProfileData = JSON.parse(savedProfile);
+                    document.querySelectorAll('.user-name-text').forEach(el => el.innerText = userProfileData.name);
+                    const viewAge = document.getElementById('profile-view-age');
+                    if (viewAge) viewAge.innerText = userProfileData.age;
+                    const viewGender = document.getElementById('profile-view-gender');
+                    if (viewGender) viewGender.innerText = userProfileData.gender;
+                    const viewHeight = document.getElementById('profile-view-height');
+                    if (viewHeight) viewHeight.innerText = userProfileData.height;
+                    const viewWeight = document.getElementById('profile-view-weight');
+                    if (viewWeight) viewWeight.innerText = userProfileData.weight;
+                } catch(e){}
+            }
+
+            const savedTDEE = localStorage.getItem('fithero_tdee_goal');
+            if (savedTDEE !== null) targetTDEEGoal = Number(savedTDEE);
+
+            const savedMissions = localStorage.getItem('fithero_missions_data');
+            if (savedMissions) {
+                try {
+                    const mData = JSON.parse(savedMissions);
+                    for (const k in mData) {
+                        if (missionsDetailData[k]) Object.assign(missionsDetailData[k], mData[k]);
+                    }
+                } catch(e){}
+            }
+
+            const savedAvatar = localStorage.getItem('fithero_profile_avatar');
+            if (savedAvatar) {
+                document.querySelectorAll('.profile-avatar-img').forEach(img => img.src = savedAvatar);
+            }
+        }
+
+        // จัดการ Modal ตั้งค่า Firebase
+        function openDatabaseConfigModal() {
+            updateDatabaseStatusUI();
+            const input = document.getElementById('firebase-config-input');
+            if (input) {
+                const saved = localStorage.getItem('fithero_firebase_config');
+                if (saved) {
+                    input.value = saved;
+                } else if (typeof isFirebaseConfigured === 'function' && isFirebaseConfigured()) {
+                    input.value = JSON.stringify(firebaseConfig, null, 2);
+                } else {
+                    input.value = '';
+                }
+            }
+            document.getElementById('database-config-modal').classList.remove('hidden');
+        }
+
+        function closeDatabaseConfigModal() {
+            document.getElementById('database-config-modal').classList.add('hidden');
+        }
+
+        function updateDatabaseStatusUI() {
+            const isConfigured = typeof isFirebaseConfigured === 'function' && isFirebaseConfigured();
+            const isReady = typeof isFbInitialized !== 'undefined' && isFbInitialized;
+
+            const statusDot = document.getElementById('db-status-dot');
+            const statusText = document.getElementById('db-status-text');
+            const statusBtn = document.getElementById('db-status-btn');
+            const loginDot = document.getElementById('login-db-dot');
+            const loginText = document.getElementById('login-db-text');
+            const profileDesc = document.getElementById('profile-db-desc');
+            const modalBox = document.getElementById('modal-db-status-box');
+
+            const baseBtn = "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ";
+
+            if (isReady && currentUser) {
+                if (statusDot) statusDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                if (statusText) statusText.innerText = "☁️ Cloud DB ออนไลน์";
+                if (statusBtn) statusBtn.className = baseBtn + "bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200";
+                if (loginDot) loginDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+                if (loginText) loginText.innerText = "ฐานข้อมูล: Cloud Firestore (ออนไลน์)";
+                if (profileDesc) profileDesc.innerText = `เชื่อมต่อกับ Cloud Firestore แล้ว (${currentUser.email || 'ออนไลน์'})`;
+
+                if (modalBox) {
+                    modalBox.className = "p-4 rounded-xl flex items-center justify-between border bg-emerald-50 border-emerald-200 text-emerald-900";
+                    modalBox.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🟢</span>
+                            <div>
+                                <p class="font-bold text-xs">เชื่อมต่อ Cloud Firestore เรียบร้อยแล้ว</p>
+                                <p class="text-[11px] opacity-80">ผู้ใช้: ${currentUser.email || currentUser.uid} (Project: ${firebaseConfig.projectId})</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-bold">ONLINE</span>
+                    `;
+                }
+            } else if (isReady) {
+                if (statusDot) statusDot.className = "w-2 h-2 rounded-full bg-blue-500";
+                if (statusText) statusText.innerText = "☁️ Firebase พร้อมใช้งาน";
+                if (statusBtn) statusBtn.className = baseBtn + "bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200";
+                if (loginDot) loginDot.className = "w-2.5 h-2.5 rounded-full bg-blue-500";
+                if (loginText) loginText.innerText = "ฐานข้อมูล: Firebase (รอเข้าสู่ระบบ)";
+                if (profileDesc) profileDesc.innerText = `เชื่อมต่อ Firebase แล้ว (Project: ${firebaseConfig.projectId})`;
+
+                if (modalBox) {
+                    modalBox.className = "p-4 rounded-xl flex items-center justify-between border bg-blue-50 border-blue-200 text-blue-900";
+                    modalBox.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🔵</span>
+                            <div>
+                                <p class="font-bold text-xs">เชื่อมต่อ Firebase สำเร็จ (Project: ${firebaseConfig.projectId})</p>
+                                <p class="text-[11px] opacity-80">พร้อมบันทึกข้อมูลเมื่อสมัครสมาชิกหรือเข้าสู่ระบบ</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 bg-blue-600 text-white rounded-lg text-[10px] font-bold">READY</span>
+                    `;
+                }
+            } else {
+                if (statusDot) statusDot.className = "w-2 h-2 rounded-full bg-amber-500";
+                if (statusText) statusText.innerText = "💾 Local Storage (คลิกตั้งค่า)";
+                if (statusBtn) statusBtn.className = baseBtn + "bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200";
+                if (loginDot) loginDot.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+                if (loginText) loginText.innerText = "ฐานข้อมูล: LocalStorage (ในเครื่อง)";
+                if (profileDesc) profileDesc.innerText = "ทำงานในโหมดออฟไลน์ (คลิกเพื่อเชื่อม Cloud DB)";
+
+                if (modalBox) {
+                    modalBox.className = "p-4 rounded-xl flex items-center justify-between border bg-amber-50 border-amber-200 text-amber-900";
+                    modalBox.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🟡</span>
+                            <div>
+                                <p class="font-bold text-xs">กำลังทำงานในโหมด LocalStorage (ออฟไลน์)</p>
+                                <p class="text-[11px] opacity-80">ข้อมูลบันทึกในเบราว์เซอร์นี้ สามารถเชื่อมต่อ Cloud Firestore เพื่อซิงค์ออนไลน์ได้ฟรี</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 bg-amber-600 text-white rounded-lg text-[10px] font-bold">LOCAL</span>
+                    `;
+                }
+            }
+        }
+
+        function saveAndConnectFirebaseFromUI() {
+            const rawInput = document.getElementById('firebase-config-input').value.trim();
+            if (!rawInput) {
+                showAlert('กรุณากรอกหรือวางโค้ด firebaseConfig');
+                return;
+            }
+
+            let parsedConfig = null;
+            try {
+                if (rawInput.startsWith('{') && rawInput.endsWith('}')) {
+                    parsedConfig = JSON.parse(rawInput);
+                } else {
+                    const apiKeyMatch = rawInput.match(/apiKey:\s*["']([^"']+)["']/);
+                    const authDomainMatch = rawInput.match(/authDomain:\s*["']([^"']+)["']/);
+                    const projectIdMatch = rawInput.match(/projectId:\s*["']([^"']+)["']/);
+                    const storageBucketMatch = rawInput.match(/storageBucket:\s*["']([^"']+)["']/);
+                    const messagingSenderIdMatch = rawInput.match(/messagingSenderId:\s*["']([^"']+)["']/);
+                    const appIdMatch = rawInput.match(/appId:\s*["']([^"']+)["']/);
+
+                    if (apiKeyMatch && projectIdMatch) {
+                        parsedConfig = {
+                            apiKey: apiKeyMatch[1],
+                            authDomain: authDomainMatch ? authDomainMatch[1] : `${projectIdMatch[1]}.firebaseapp.com`,
+                            projectId: projectIdMatch[1],
+                            storageBucket: storageBucketMatch ? storageBucketMatch[1] : `${projectIdMatch[1]}.appspot.com`,
+                            messagingSenderId: messagingSenderIdMatch ? messagingSenderIdMatch[1] : '',
+                            appId: appIdMatch ? appIdMatch[1] : ''
+                        };
+                    }
+                }
+            } catch (e) {
+                showAlert('❌ รูปแบบคอนฟิกไม่ถูกต้อง กรุณาตรวจสอบ JSON หรือ Object ที่นำมาวาง');
+                return;
+            }
+
+            if (!parsedConfig || !parsedConfig.apiKey || !parsedConfig.projectId) {
+                showAlert('❌ ไม่พบคีย์ apiKey หรือ projectId ในข้อความที่วาง กรุณาตรวจสอบอีกครั้ง');
+                return;
+            }
+
+            localStorage.setItem('fithero_firebase_config', JSON.stringify(parsedConfig));
+            firebaseConfig = parsedConfig;
+
+            if (typeof initializeFitHeroFirebase === 'function') {
+                const ok = initializeFitHeroFirebase();
+                if (ok) {
+                    updateDatabaseStatusUI();
+                    closeDatabaseConfigModal();
+                    showAlert('🎉 บันทึกการตั้งค่าและเชื่อมต่อ Cloud Firestore สำเร็จแล้ว!');
+                    return;
+                }
+            }
+
+            updateDatabaseStatusUI();
+            closeDatabaseConfigModal();
+            showAlert('บันทึกการตั้งค่าเรียบร้อยแล้ว กรุณารีเฟรชหน้าเว็บหากระบบยังไม่เริ่มทำงาน');
+        }
+
+        function switchToLocalDatabaseMode() {
+            localStorage.removeItem('fithero_firebase_config');
+            if (typeof defaultFirebaseConfig !== 'undefined') {
+                firebaseConfig = defaultFirebaseConfig;
+            }
+            isFbInitialized = false;
+            updateDatabaseStatusUI();
+            closeDatabaseConfigModal();
+            showAlert('สลับกลับมาใช้งานโหมด LocalStorage เรียบร้อย');
+        }
 
         // อัปเดตราคาตามจำนวนชิ้นที่เลือก (เฉพาะ Royal-D Energy Gel)
         function updateRewardPrice(index, basePrice) {
@@ -1674,6 +2067,10 @@
             if (confirm(`คุณต้องการใช้ ${totalCost} เหรียญ เพื่อแลกรับ "${rewardName}" จำนวน ${qty} ชิ้น ใช่หรือไม่?`)) {
                 userCoins -= totalCost;
                 updateStatsUI();
+                syncDataToCloud();
+                if (currentUserId && typeof dbLogRedemption === 'function') {
+                    dbLogRedemption(currentUserId, { rewardName, qty, totalCost, timestamp: new Date().toISOString() });
+                }
                 showAlert(`🎁 แลกรับรางวัลสำเร็จ! คุณทำการแลก "${rewardName}" จำนวน ${qty} ชิ้น เรียบร้อยแล้ว ทีมงานจะจัดส่งของรางวัลให้ตามที่อยู่ของคุณ`);
             }
         }
@@ -1701,6 +2098,7 @@
 
                 localStorage.setItem('fithero_tshirt_title', titleInput);
                 localStorage.setItem('fithero_tshirt_desc', descInput);
+                syncDataToCloud();
 
                 toggleTshirtEdit(false);
                 showAlert('บันทึกข้อมูลเสื้อยืดเรียบร้อยแล้ว ข้อมูลจะไม่หายไป!');
@@ -1754,21 +2152,44 @@
             }
         }
 
-        function handleLoginSubmit(event) {
+        async function handleLoginSubmit(event) {
             event.preventDefault();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
 
+            // 1. ตรวจสอบการเชื่อมต่อ Firebase Auth & Cloud Firestore
+            if (typeof isFbInitialized !== 'undefined' && isFbInitialized) {
+                showAlert('⏳ กำลังเข้าสู่ระบบและดึงข้อมูลจาก Cloud Firestore...');
+                const res = await dbLoginUser(email, password);
+                if (res.success) {
+                    currentUser = res.user;
+                    currentUserId = res.user.uid;
+                    if (res.data) {
+                        applyUserDataToApp(res.data);
+                    }
+                    updateDatabaseStatusUI();
+                    showAlert(`🎉 เข้าสู่ระบบสำเร็จ! เชื่อมต่อกับ Cloud Firestore (${email}) เรียบร้อยแล้ว`);
+                    navigateTo('page-dashboard');
+                    return;
+                } else {
+                    showAlert(`❌ เข้าสู่ระบบไม่สำเร็จ: ${res.message}`);
+                    return;
+                }
+            }
+
+            // 2. โหมด LocalStorage สำรอง
             if (registeredUsers[email] && registeredUsers[email].password === password) {
                 userProfileData.name = registeredUsers[email].name || 'Alex Rivers';
                 document.querySelectorAll('.user-name-text').forEach(el => el.innerText = userProfileData.name);
+                loadLocalStorageData();
+                updateDatabaseStatusUI();
                 navigateTo('page-dashboard');
             } else {
                 showAlert('❌ ไม่พบข้อมูลบัญชีนี้หรือรหัสผ่านไม่ถูกต้อง! คุณต้องสมัครสมาชิกก่อนจึงจะสามารถเข้าใช้งานได้');
             }
         }
 
-        function handleRegistrationSubmit(event) {
+        async function handleRegistrationSubmit(event) {
             event.preventDefault();
             const email = document.getElementById('reg-email').value.trim();
             const password = document.getElementById('reg-password').value;
@@ -1784,6 +2205,38 @@
                 return;
             }
 
+            // 1. ถ้าเชื่อมต่อ Firebase อยู่ ให้สร้างบัญชีและบันทึกลง Cloud Firestore
+            if (typeof isFbInitialized !== 'undefined' && isFbInitialized) {
+                showAlert('⏳ กำลังสมัครสมาชิกและสร้างฐานข้อมูลบน Cloud Firestore...');
+                const initialData = {
+                    name: email.split('@')[0],
+                    age: userProfileData.age,
+                    gender: userProfileData.gender,
+                    height: userProfileData.height,
+                    weight: userProfileData.weight,
+                    coins: userCoins,
+                    totalAccumulatedEXP: totalAccumulatedEXP,
+                    targetTDEEGoal: targetTDEEGoal,
+                    missions: missionsDetailData
+                };
+
+                const res = await dbRegisterUser(email, password, initialData);
+                if (res.success) {
+                    currentUser = res.user;
+                    currentUserId = res.user.uid;
+                    const loginEmailInput = document.getElementById('email');
+                    if (loginEmailInput) loginEmailInput.value = email;
+                    updateDatabaseStatusUI();
+                    showAlert(`🎉 สมัครสมาชิกสำเร็จ! บัญชี (${email}) ถูกสร้างขึ้นบน Firebase Cloud Firestore แล้ว`);
+                    navigateTo('page-login');
+                    return;
+                } else {
+                    showAlert(`❌ สมัครสมาชิกไม่สำเร็จ: ${res.message}`);
+                    return;
+                }
+            }
+
+            // 2. โหมด LocalStorage สำรอง
             const nameFromEmail = email.split('@')[0];
             registeredUsers[email] = {
                 email: email,
@@ -1796,7 +2249,7 @@
             const loginEmailInput = document.getElementById('email');
             if (loginEmailInput) loginEmailInput.value = email;
 
-            showAlert(`🎉 สมัครสมาชิกบัญชี (${email}) สำเร็จเรียบร้อยแล้ว! ข้อมูลถูกบันทึกไว้แล้ว สามารถใช้บัญชีนี้เข้าสู่ระบบในครั้งต่อๆ ไปได้ทันที`);
+            showAlert(`🎉 สมัครสมาชิกบัญชี (${email}) สำเร็จเรียบร้อยแล้ว! ข้อมูลถูกบันทึกไว้ใน LocalStorage สามารถเข้าสู่ระบบได้ทันที`);
             navigateTo('page-login');
         }
 
@@ -1928,6 +2381,7 @@
             if (inputVal && inputVal >= 500 && inputVal <= 10000) {
                 targetTDEEGoal = inputVal;
                 updateTDEEDisplay();
+                syncDataToCloud();
                 closeSetTDEEGoalModal();
                 showAlert(`⚡ บันทึกเป้าหมาย TDEE เป็น ${targetTDEEGoal.toLocaleString()} kcal/วัน เรียบร้อยแล้ว!`);
             } else {
@@ -2055,6 +2509,7 @@
             else if (missionKey === 'sleep') data.currentVal = null;
 
             renderMissionsUI();
+            syncDataToCloud();
             showAlert(`🔄 รีเซ็ตภารกิจ "${data.title}" เรียบร้อยแล้ว สามารถเริ่มทำกิจกรรมเพื่อสะสมเหรียญใหม่ได้เลย!`);
         }
 
@@ -2080,6 +2535,7 @@
         function finishRunTrackerSession() {
             closeRunTrackerModal();
             renderMissionsUI();
+            syncDataToCloud();
             showAlert('บันทึกสถิติการวิ่งเข้าระบบเรียบร้อยแล้ว!');
         }
 
@@ -2104,6 +2560,7 @@
         function finishStepCounterSession() {
             closeStepCounterModal();
             renderMissionsUI();
+            syncDataToCloud();
             showAlert('อัปเดตจำนวนก้าวเดินเรียบร้อยแล้ว!');
         }
 
@@ -2122,6 +2579,7 @@
 
             closeSleepAlarmModal();
             renderMissionsUI();
+            syncDataToCloud();
             showAlert(`⏰ ตั้งเวลาเข้านอนที่ ${sleepTime} น. เรียบร้อยแล้ว! กดรับเหรียญรางวัลได้เลย`);
         }
 
@@ -2137,6 +2595,7 @@
                 showAlert(`💧 ดื่มน้ำเพิ่มอีก ${amount * 1000} ml (สะสมแล้ว ${mWater.currentVal.toFixed(2)}L / 2.0L)`);
             }
             renderMissionsUI();
+            syncDataToCloud();
             closeQuickLog();
         }
 
@@ -2165,6 +2624,7 @@
                 document.querySelectorAll('.user-name-text').forEach(el => {
                     el.innerText = newName;
                 });
+                syncDataToCloud();
                 toggleUserNameEdit(false);
                 showAlert('ทำการเปลี่ยนชื่อผู้ใช้เรียบร้อยแล้ว!');
             } else {
@@ -2223,6 +2683,7 @@
                 inputWeight.classList.add('hidden');
 
                 calculateAndUpdateBMI();
+                syncDataToCloud();
                 showAlert('บันทึกและประมวลผลข้อมูล BMI เรียบร้อยแล้ว!');
             }
         }
@@ -2272,6 +2733,10 @@
                     document.querySelectorAll('.profile-avatar-img').forEach(img => {
                         img.src = newImageSrc;
                     });
+                    localStorage.setItem('fithero_profile_avatar', newImageSrc);
+                    if (typeof isFbInitialized !== 'undefined' && isFbInitialized && currentUserId && typeof dbSaveUserData === 'function') {
+                        dbSaveUserData(currentUserId, { avatar: newImageSrc });
+                    }
                     showAlert('เปลี่ยนรูปโปรไฟล์เรียบร้อยแล้ว!');
                 };
                 reader.readAsDataURL(file);
@@ -2357,6 +2822,7 @@
 
             updateStatsUI();
             renderMissionsUI();
+            syncDataToCloud();
             showAlert(`🎉 ยินดีด้วย! ทำภารกิจสำเร็จ ได้รับ +${coins} เหรียญ และ +${exp} EXP เรียบร้อยแล้ว`);
         }
 
@@ -2393,6 +2859,7 @@
                         }
 
                         renderMissionsUI();
+                        syncDataToCloud();
                         showAlert('🧘‍♀️ ยินดีด้วย! คุณทำสมาธิผ่อนคลายครบ 5 นาทีเรียบร้อยแล้ว กดรับเหรียญรางวัลได้เลย!');
                     }
                 }, 1000);
@@ -2456,6 +2923,10 @@
             if (confirm(`คุณต้องการใช้ ${cost} เหรียญ เพื่อแลกรับ "${rewardName}" ใช่หรือไม่?`)) {
                 userCoins -= cost;
                 updateStatsUI();
+                syncDataToCloud();
+                if (currentUserId && typeof dbLogRedemption === 'function') {
+                    dbLogRedemption(currentUserId, { rewardName, qty: 1, totalCost: cost, timestamp: new Date().toISOString() });
+                }
                 showAlert(`🎁 แลกรับรางวัลสำเร็จ! คุณทำการแลก "${rewardName}" เรียบร้อยแล้ว ทีมงานจะจัดส่งของรางวัลให้ตามที่อยู่ของคุณ`);
             }
         }
@@ -2679,22 +3150,60 @@
             totalAccumulatedEXP += 50;
 
             updateStatsUI();
+            syncDataToCloud();
+            if (currentUserId && typeof dbLogActivity === 'function') {
+                dbLogActivity(currentUserId, { type, duration, exp: 50, timestamp: new Date().toISOString() });
+            }
             showAlert(`บันทึกสำเร็จ! กิจกรรม "${type}" (${duration}) เพิ่มเข้าสู่ประวัติเรียบร้อยแล้ว (+50 EXP)`);
         }
 
-        function confirmLogout() {
+        async function confirmLogout() {
             if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
+                if (typeof dbLogoutUser === 'function') {
+                    await dbLogoutUser();
+                }
+                currentUser = null;
+                currentUserId = null;
+                updateDatabaseStatusUI();
                 navigateTo('page-login');
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            loadLocalStorageData();
             calculateAndUpdateBMI();
             renderMissionsUI();
             updateTDEEDisplay();
             updateStatsUI();
             loadSavedRewardImages();
             loadSavedTshirtDetails();
+            updateDatabaseStatusUI();
+
+            // ตรวจสอบการเชื่อมต่อและสถานะ Auth ของ Firebase
+            if (typeof firebase !== 'undefined' && typeof fbAuth !== 'undefined' && fbAuth) {
+                fbAuth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        currentUserId = user.uid;
+                        console.log("Firebase Auth User:", user.email);
+                        if (fbDb) {
+                            try {
+                                const docSnap = await fbDb.collection('users').doc(user.uid).get();
+                                if (docSnap.exists) {
+                                    applyUserDataToApp(docSnap.data());
+                                }
+                            } catch (e) {
+                                console.warn("Error fetching Firestore user data:", e);
+                            }
+                        }
+                        updateDatabaseStatusUI();
+                    } else {
+                        currentUser = null;
+                        currentUserId = null;
+                        updateDatabaseStatusUI();
+                    }
+                });
+            }
 
             const togglePasswordBtn = document.getElementById('togglePassword');
             const passwordInput = document.getElementById('password');

@@ -4,5 +4,11 @@
 .DS_Store
 Thumbs.db
 
-# Logs
+# dependencies
+node_modules/
+
+# build output
+dist/
+
+# OS / IDE
 *.log

@@ -172,12 +172,6 @@
                     </button>
                 </form>
 
-                <div class="relative my-6 flex items-center">
-                    <div class="flex-grow border-t border-outline-variant/50"></div>
-                    <span class="px-4 text-xs font-label text-outline uppercase tracking-widest bg-surface-container-low">หรือ</span>
-                    <div class="flex-grow border-t border-outline-variant/50"></div>
-                </div>
-
                 <div class="bg-surface p-5 rounded-xl border border-primary/20 text-center space-y-3 shadow-xs">
                     <div class="space-y-1">
                         <p class="font-label text-sm font-bold text-on-surface">ยังไม่มีบัญชี FitHero?</p>
@@ -322,7 +316,7 @@
                         </div>
                         <div>
                             <p class="text-xs text-on-tertiary-container/80 font-bold uppercase tracking-tighter">เหรียญสะสม</p>
-                            <p class="text-xl font-bold text-tertiary" id="user-coins">520</p>
+                            <p class="text-xl font-bold text-tertiary" id="user-coins">0</p>
                         </div>
                     </div>
                     
@@ -398,7 +392,7 @@
                             </div>
                             <div>
                                 <p class="text-xs text-on-surface-variant font-semibold">เหรียญคงเหลือ</p>
-                                <p class="text-lg font-bold text-tertiary" id="dashboard-shop-coins">520 เหรียญ</p>
+                                <p class="text-lg font-bold text-tertiary" id="dashboard-shop-coins">0 เหรียญ</p>
                             </div>
                         </div>
                         <button class="px-4 py-2 bg-tertiary text-white rounded-lg text-xs font-bold hover:bg-tertiary/90 transition-all shadow-xs">
@@ -460,7 +454,7 @@
             </div>
             <div class="flex items-center gap-2 bg-tertiary-container/20 px-3 py-1.5 rounded-full border border-tertiary/10">
                 <span class="material-symbols-outlined text-tertiary text-sm" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
-                <span class="font-bold text-tertiary text-sm" id="missions-page-coins">520</span>
+                <span class="font-bold text-tertiary text-sm" id="missions-page-coins">0</span>
             </div>
         </header>
 
@@ -532,9 +526,15 @@
                             <span class="text-xs font-bold uppercase tracking-widest text-tertiary">Running Performance</span>
                             <h2 class="font-headline text-2xl font-bold text-on-surface">สรุปกิจกรรมการวิ่งรายสัปดาห์</h2>
                         </div>
-                        <div class="bg-tertiary-container/30 text-tertiary px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">calendar_today</span>
-                            <span>สัปดาห์นี้</span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="openLogActivityModal('run')" class="px-3 py-1.5 bg-tertiary text-white rounded-xl text-xs font-bold hover:bg-tertiary/90 transition-all flex items-center gap-1 shadow-xs active:scale-95">
+                                <span class="material-symbols-outlined text-sm">add_circle</span>
+                                <span>+ บันทึกการวิ่ง</span>
+                            </button>
+                            <div class="bg-tertiary-container/30 text-tertiary px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">calendar_today</span>
+                                <span>สัปดาห์นี้</span>
+                            </div>
                         </div>
                     </div>
 
@@ -655,26 +655,32 @@
                             <span class="text-xs font-bold uppercase tracking-widest text-primary">Steps Activity</span>
                             <h2 class="font-headline text-2xl font-bold text-on-surface">สรุปกิจกรรมก้าวเดินรายสัปดาห์</h2>
                         </div>
-                        <div class="bg-primary-container/30 text-primary px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">calendar_today</span>
-                            <span>สัปดาห์นี้</span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="openLogActivityModal('step')" class="px-3 py-1.5 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/90 transition-all flex items-center gap-1 shadow-xs active:scale-95">
+                                <span class="material-symbols-outlined text-sm">add_circle</span>
+                                <span>+ บันทึกก้าวเดิน</span>
+                            </button>
+                            <div class="bg-primary-container/30 text-primary px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">calendar_today</span>
+                                <span>สัปดาห์นี้</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-3 gap-3">
                         <div class="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/20 text-center">
                             <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">ก้าวเดินรวม</p>
-                            <p class="text-xl font-bold text-primary mt-0.5">48,920</p>
+                            <p class="text-xl font-bold text-primary mt-0.5" id="total-steps-val">0</p>
                             <p class="text-[10px] text-on-surface-variant">ก้าว / สัปดาห์</p>
                         </div>
                         <div class="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/20 text-center">
                             <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">เฉลี่ยต่อวัน</p>
-                            <p class="text-xl font-bold text-tertiary mt-0.5">6,988</p>
+                            <p class="text-xl font-bold text-tertiary mt-0.5" id="avg-steps-val">0</p>
                             <p class="text-[10px] text-on-surface-variant">ก้าว / วัน</p>
                         </div>
                         <div class="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/20 text-center">
                             <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">เผาผลาญรวม</p>
-                            <p class="text-xl font-bold text-on-surface mt-0.5">2,150</p>
+                            <p class="text-xl font-bold text-on-surface mt-0.5" id="total-step-cal-val">0</p>
                             <p class="text-[10px] text-on-surface-variant">kcal</p>
                         </div>
                     </div>
@@ -777,7 +783,7 @@
             </div>
             <div class="flex items-center gap-2 bg-tertiary-container/20 px-3 py-1.5 rounded-full border border-tertiary/10">
                 <span class="material-symbols-outlined text-tertiary text-sm" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
-                <span class="font-bold text-tertiary text-sm" id="store-coins-top">520</span>
+                <span class="font-bold text-tertiary text-sm" id="store-coins-top">0</span>
             </div>
         </header>
 
@@ -787,30 +793,51 @@
                 <div class="flex justify-between items-center">
                     <div>
                         <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">เหรียญสะสมของคุณ</span>
-                        <h2 class="text-3xl font-bold font-headline text-tertiary mt-0.5" id="store-coins-display">520 🪙</h2>
+                        <h2 class="text-3xl font-bold font-headline text-tertiary mt-0.5" id="store-coins-display">0 🪙</h2>
                     </div>
                     <div class="text-right">
-                        <span class="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full" id="store-level-badge">ระดับปัจจุบัน: Level 2</span>
+                        <span class="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full" id="store-level-badge">ระดับปัจจุบัน: Level 1</span>
                     </div>
                 </div>
 
                 <div class="space-y-1.5">
                     <div class="flex justify-between text-xs font-bold text-on-surface-variant">
                         <span>ความคืบหน้าถึงเป้าหมายสูงสุด (Level 4)</span>
-                        <span id="store-coins-progress-text">520 / 2,500 🪙 (21%)</span>
+                        <span id="store-coins-progress-text">0 / 2,500 🪙 (0%)</span>
                     </div>
                     <div class="w-full bg-surface-container-highest rounded-full h-3.5 overflow-hidden p-0.5 border border-outline-variant/30">
-                        <div class="bg-gradient-to-r from-tertiary-container to-tertiary h-full rounded-full transition-all duration-500" id="store-coins-progress-bar" style="width: 20.8%;"></div>
+                        <div class="bg-gradient-to-r from-tertiary-container to-tertiary h-full rounded-full transition-all duration-500" id="store-coins-progress-bar" style="width: 0%;"></div>
                     </div>
                 </div>
             </div>
 
+            <!-- แถบทางลัดสำหรับอาจารย์ / ผู้ดูแลระบบ ไปยังหน้าจัดการการจัดส่งของรางวัล -->
+            <div id="store-admin-delivery-banner" class="hidden p-4 bg-purple-50 border border-purple-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold flex-shrink-0">
+                        <span class="material-symbols-outlined">local_shipping</span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs text-purple-900">เมนูอาจารย์ / ผู้ดูแลระบบ: จัดการการจัดส่งของรางวัล</h4>
+                        <p class="text-[11px] text-purple-700">ตรวจสอบที่อยู่จัดส่งของสมาชิก อัปเดตสถานะ และใส่เลขพัสดุ</p>
+                    </div>
+                </div>
+                <button onclick="switchToAdminDeliveryTab()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-xs flex items-center justify-center gap-1.5 flex-shrink-0">
+                    <span class="material-symbols-outlined text-sm">settings</span>
+                    <span>ไปยังแผงจัดการการจัดส่ง</span>
+                </button>
+            </div>
+
             <div class="space-y-5">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between flex-wrap gap-2">
                     <h3 class="font-headline text-xl font-bold text-on-surface flex items-center gap-2">
                         <span class="material-symbols-outlined text-tertiary">card_giftcard</span>
                         <span>รายการของรางวัลทั้งหมด</span>
                     </h3>
+                    <button onclick="openUserOrdersModal()" class="px-3.5 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs active:scale-95">
+                        <span class="material-symbols-outlined text-sm">inventory_2</span>
+                        <span>📦 ประวัติการแลก & ติดตามพัสดุ</span>
+                    </button>
                 </div>
 
                 <div id="user-rewards-list" class="space-y-4">
@@ -997,7 +1024,7 @@
                             </div>
                             <div class="text-left">
                                 <p class="text-sm font-bold text-on-surface">ความสำเร็จและเหรียญรางวัล</p>
-                                <p class="text-xs text-tertiary font-bold" id="profile-coins-val">520 เหรียญสะสม • ร้านค้าแลกของรางวัล</p>
+                                <p class="text-xs text-tertiary font-bold" id="profile-coins-val">0 เหรียญสะสม • ร้านค้าแลกของรางวัล</p>
                             </div>
                         </div>
                         <span class="material-symbols-outlined text-on-surface-variant/40 group-hover:translate-x-1 transition-transform">chevron_right</span>
@@ -1085,7 +1112,7 @@
                 </button>
                 <button id="admin-tab-btn-orders" onclick="switchAdminTab('orders')" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-all flex items-center gap-1.5">
                     <span class="material-symbols-outlined text-base">local_shipping</span>
-                    <span>คำขอแลกรางวัล</span>
+                    <span>📦 จัดการการจัดส่งพัสดุ</span>
                 </button>
             </div>
         </nav>
@@ -1219,13 +1246,14 @@
                 </div>
 
                 <div class="bg-surface rounded-2xl border border-outline-variant/30 overflow-x-auto shadow-xs">
-                    <table class="w-full text-left border-collapse min-w-[650px]">
+                    <table class="w-full text-left border-collapse min-w-[850px]">
                         <thead>
                             <tr class="bg-surface-container-low border-b border-outline-variant/30 text-xs text-on-surface-variant font-bold">
                                 <th class="p-3">รหัส / วันที่</th>
-                                <th class="p-3">สมาชิก</th>
+                                <th class="p-3">ผู้รับ & เบอร์โทร</th>
+                                <th class="p-3">ที่อยู่จัดส่งพัสดุ</th>
                                 <th class="p-3">ของรางวัล</th>
-                                <th class="p-3">สถานะจัดส่ง</th>
+                                <th class="p-3">สถานะ & เลขพัสดุ</th>
                                 <th class="p-3">จัดการ</th>
                             </tr>
                         </thead>
@@ -1769,6 +1797,136 @@
                 <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant/30">
                     <button type="button" onclick="adminCloseProductModal()" class="px-4 py-2 bg-surface-container text-xs font-bold rounded-xl hover:bg-surface-container-high transition-all">ยกเลิก</button>
                     <button type="submit" class="px-5 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 active:scale-95 transition-all shadow-md">บันทึกของรางวัล</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: REDEMPTION SHIPPING ADDRESS -->
+    <div id="redeem-address-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div class="bg-surface rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-outline-variant/30 max-h-[92vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-outline-variant/30 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">local_shipping</span>
+                    <h3 class="font-headline text-base font-bold text-on-surface">ระบุที่อยู่จัดส่งของรางวัล</h3>
+                </div>
+                <button type="button" class="material-symbols-outlined cursor-pointer text-outline hover:text-on-surface p-1 rounded-full hover:bg-surface-container" onclick="closeRedemptionAddressModal()">close</button>
+            </div>
+
+            <!-- Product Summary Card -->
+            <div class="flex items-center gap-3.5 p-3 rounded-xl bg-surface-container-low border border-outline-variant/30">
+                <img id="redeem-modal-product-img" src="" alt="Reward Preview" class="w-16 h-16 rounded-xl object-cover border border-outline-variant/40 flex-shrink-0" />
+                <div class="flex-1 min-w-0">
+                    <h4 id="redeem-modal-product-name" class="font-bold text-sm text-on-surface line-clamp-1">-</h4>
+                    <p id="redeem-modal-qty-text" class="text-xs text-on-surface-variant mt-0.5">จำนวน 1 ชิ้น</p>
+                    <div class="flex items-center justify-between mt-1">
+                        <span id="redeem-modal-cost-text" class="text-xs font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">0 เหรียญ</span>
+                        <span id="redeem-modal-coins-balance" class="text-[10px] text-on-surface-variant font-medium">คงเหลือ: -</span>
+                    </div>
+                </div>
+            </div>
+
+            <form id="redeem-shipping-form" onsubmit="submitRedemptionWithAddress(event)" class="space-y-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant mb-1">ชื่อ - นามสกุล ผู้รับพัสดุ *</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-lg">person</span>
+                        <input type="text" id="redeem-shipping-name" required placeholder="เช่น นายสมชาย ใจดี" class="w-full pl-9 pr-3 py-2 bg-surface-container-lowest rounded-xl border border-outline-variant/50 text-xs focus:ring-2 focus:ring-primary focus:outline-hidden" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant mb-1">เบอร์โทรศัพท์ติดต่อ (สำหรับเจ้าหน้าที่จัดส่ง) *</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-lg">call</span>
+                        <input type="tel" id="redeem-shipping-phone" required placeholder="เช่น 081-234-5678" class="w-full pl-9 pr-3 py-2 bg-surface-container-lowest rounded-xl border border-outline-variant/50 text-xs focus:ring-2 focus:ring-primary focus:outline-hidden" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant mb-1">ที่อยู่จัดส่งพัสดุโดยละเอียด *</label>
+                    <div class="relative">
+                        <textarea id="redeem-shipping-address" rows="3" required placeholder="บ้านเลขที่, ถนน/ซอย, แขวง/ตำบล, เขต/อำเภอ, จังหวัด, รหัสไปรษณีย์" class="w-full p-2.5 bg-surface-container-lowest rounded-xl border border-outline-variant/50 text-xs focus:ring-2 focus:ring-primary focus:outline-hidden leading-relaxed"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="redeem-save-address-chk" checked class="w-4 h-4 text-primary rounded border-outline-variant/50 focus:ring-primary" />
+                    <label for="redeem-save-address-chk" class="text-xs text-on-surface-variant cursor-pointer select-none">บันทึกเบอร์โทรและที่อยู่นี้ไว้ในโปรไฟล์สำหรับการแลกครั้งต่อไป</label>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-primary/5 border border-primary/20 text-[11px] text-on-surface-variant flex items-start gap-2">
+                    <span class="material-symbols-outlined text-primary text-sm mt-0.5">verified_user</span>
+                    <span>ระบบจะตัดเหรียญสะสมของคุณและส่งคำสั่งจัดส่งไปยังผู้ดูแลระบบทันที ติดตามสถานะได้ที่เมนู "📦 ประวัติการแลก & ติดตามพัสดุ"</span>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant/30">
+                    <button type="button" onclick="closeRedemptionAddressModal()" class="px-4 py-2 bg-surface-container text-xs font-bold rounded-xl hover:bg-surface-container-high transition-all">ยกเลิก</button>
+                    <button type="submit" class="px-5 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 active:scale-95 transition-all shadow-md flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-sm">check_circle</span>
+                        <span>ยืนยันการแลกของรางวัล</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: USER ORDERS & DELIVERY TRACKING -->
+    <div id="user-orders-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div class="bg-surface rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-outline-variant/30 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-outline-variant/30 pb-3 flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                        <span class="material-symbols-outlined text-lg">local_shipping</span>
+                    </div>
+                    <div>
+                        <h3 class="font-headline text-base font-bold text-on-surface">ประวัติการแลก & สถานะจัดส่ง</h3>
+                        <p class="text-[11px] text-on-surface-variant">ติดตามสถานะและเลขพัสดุของรางวัลที่คุณแลกรับ</p>
+                    </div>
+                </div>
+                <button type="button" class="material-symbols-outlined cursor-pointer text-outline hover:text-on-surface p-1 rounded-full hover:bg-surface-container" onclick="closeUserOrdersModal()">close</button>
+            </div>
+
+            <!-- Orders List Container -->
+            <div id="user-orders-list-container" class="space-y-3 overflow-y-auto flex-1 pr-1">
+                <!-- Dynamically populated via renderUserOrdersList() in js/rewards.js -->
+            </div>
+
+            <div class="pt-3 border-t border-outline-variant/30 flex justify-end flex-shrink-0">
+                <button type="button" onclick="closeUserOrdersModal()" class="px-5 py-2 bg-surface-container hover:bg-surface-container-high text-xs font-bold rounded-xl transition-all">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: LOG ACTIVITY (RUN / STEPS) -->
+    <div id="log-activity-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div class="bg-surface rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-outline-variant/30">
+            <div class="flex justify-between items-center border-b border-outline-variant/30 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">add_circle</span>
+                    <h3 class="font-headline text-base font-bold text-on-surface">บันทึกกิจกรรมสุขภาพ</h3>
+                </div>
+                <button type="button" class="material-symbols-outlined cursor-pointer text-outline hover:text-on-surface p-1 rounded-full hover:bg-surface-container" onclick="closeLogActivityModal()">close</button>
+            </div>
+
+            <form onsubmit="handleLogActivityFormSubmit(event)" class="space-y-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant mb-1">ประเภทกิจกรรม</label>
+                    <select id="log-activity-type-select" class="w-full p-2.5 bg-surface-container-lowest rounded-xl border border-outline-variant/50 text-xs font-bold focus:ring-2 focus:ring-primary focus:outline-hidden">
+                        <option value="run">🏃‍♂️ วิ่งสะสมระยะทาง (กิโลเมตร : km)</option>
+                        <option value="step">🚶‍♂️ ก้าวเดินประจำวัน (จำนวนก้าว : steps)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant mb-1">จำนวนที่ทำได้ *</label>
+                    <input type="number" step="any" id="log-activity-val-input" required min="0.1" placeholder="เช่น 3.5 (กม.) หรือ 2500 (ก้าว)" class="w-full p-2.5 bg-surface-container-lowest rounded-xl border border-outline-variant/50 text-xs focus:ring-2 focus:ring-primary focus:outline-hidden font-bold" />
+                    <p class="text-[10px] text-on-surface-variant mt-1">💡 บันทึกนี้จะอัปเดตสถิติประจำสัปดาห์ ก้าวหน้าภารกิจ และซิงค์เฉพาะบัญชีของคุณ</p>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant/30">
+                    <button type="button" onclick="closeLogActivityModal()" class="px-4 py-2 bg-surface-container text-xs font-bold rounded-xl hover:bg-surface-container-high transition-all">ยกเลิก</button>
+                    <button type="submit" class="px-5 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 active:scale-95 transition-all shadow-md">บันทึกสถิติ</button>
                 </div>
             </form>
         </div>

@@ -90,6 +90,121 @@ if (typeof firebase !== 'undefined') {
  * =========================================================================
  */
 
+// ฟังก์ชันสร้างภารกิจเริ่มต้นแบบสะอาดสำหรับผู้ใช้ใหม่ (แยกรายคน 100%)
+function getFreshDefaultMissions() {
+    return {
+        'run20k': {
+            id: 'run20k',
+            title: '1. วิ่งระยะทางสะสม 20 กิโลเมตร',
+            tag: 'วิ่ง & ออกกำลังกาย',
+            category: 'workout',
+            rewardText: '+150 EXP • +50 เหรียญ',
+            icon: '🏃‍♂️',
+            condition: 'weekly_running_distance >= 20.0 km',
+            detection: 'Sync ข้อมูล GPS / Run Tracking จากแอป หรือบันทึกระยะทาง',
+            currentVal: 0.0,
+            targetVal: 20.0,
+            unit: 'km',
+            status: 'pending',
+            exp: 150,
+            coins: 50,
+            tip: '💡 Tip: การวิ่งสะสมระยะทางสม่ำเสมอช่วยพัฒนาความแข็งแรงของระบบหัวใจและปอดได้อย่างมีประสิทธิภาพ'
+        },
+        'step': {
+            id: 'step',
+            title: '2. เดินสะสมครบ 5,000 ก้าว',
+            tag: 'วิ่ง & ออกกำลังกาย',
+            category: 'workout',
+            rewardText: '+50 EXP • +20 เหรียญ',
+            icon: '🚶‍♂️',
+            condition: 'daily_step_count >= 5000 ก้าว',
+            detection: 'Sync ข้อมูลจาก Pedometer Sensor ของสมาร์ทโฟนหรือกดบันทึกก้าวเดิน',
+            currentVal: 0,
+            targetVal: 5000,
+            unit: 'ก้าว',
+            status: 'pending',
+            exp: 50,
+            coins: 20,
+            tip: '💡 Tip: การเดินวันละ 5,000 ก้าวขึ้นไป ช่วยกระตุ้นการเผาผลาญและระบบหมุนเวียนโลหิตตลอดวัน'
+        },
+        'water': {
+            id: 'water',
+            title: '3. ดื่มน้ำสะอาดให้ครบ 2 ลิตร',
+            tag: 'โภชนาการ',
+            category: 'nutrition',
+            rewardText: '+40 EXP • +15 เหรียญ',
+            icon: '💧',
+            condition: 'daily_water_volume >= 2.0 ลิตร',
+            detection: 'Manual Input (กดบันทึกดื่มน้ำ) หรือ ดึงข้อมูลจาก Health API',
+            currentVal: 0.0,
+            targetVal: 2.0,
+            unit: 'L',
+            status: 'pending',
+            exp: 40,
+            coins: 15,
+            tip: '💡 Tip: การดื่มน้ำอย่างเพียงพอช่วยเติมความชุ่มชื้น สดชื่น และช่วยให้ผิวพรรณเปล่งปลั่ง'
+        },
+        'meditation': {
+            id: 'meditation',
+            title: '4. ทำสมาธิผ่อนคลาย 5 นาที',
+            tag: 'จิตใจ & พักผ่อน',
+            category: 'mind',
+            rewardText: '+60 EXP • +25 เหรียญ',
+            icon: '🧘‍♀️',
+            condition: 'meditation_duration >= 300 วินาที (5 นาที)',
+            detection: 'เปิดหน้า Timer นับถอยหลังครบ 5 นาที',
+            currentVal: 0,
+            targetVal: 5,
+            unit: 'นาที',
+            status: 'pending',
+            exp: 60,
+            coins: 25,
+            tip: '💡 Tip: การทำสมาธิวันละ 5 นาที ช่วยลดระดับฮอร์โมนความเครียด (Cortisol) และเพิ่มสมาธิ'
+        },
+        'sleep': {
+            id: 'sleep',
+            title: '5. เข้านอนก่อนเวลา 23:00 น.',
+            tag: 'จิตใจ & พักผ่อน',
+            category: 'mind',
+            rewardText: '+40 EXP • +15 เหรียญ',
+            icon: '🌙',
+            condition: 'sleep_start_time <= 23:00 น.',
+            detection: 'กดปุ่มบันทึกเวลาเข้านอนก่อนเวลา 23:00 น.',
+            currentVal: null,
+            targetVal: '23:00',
+            unit: '',
+            status: 'pending',
+            exp: 40,
+            coins: 15,
+            tip: '💡 Tip: การเข้านอนก่อน 23:00 น. ช่วยให้ร่างกายหลั่ง Growth Hormone ซ่อมแซมกล้ามเนื้อได้ดี'
+        }
+    };
+}
+
+// ฟังก์ชันสร้างสถิติเริ่มต้นของสัปดาห์เฉพาะบุคคล
+function getFreshWeeklyStats() {
+    return {
+        running: [
+            { day: 'วันจันทร์', dist: 0.0, pace: "-", time: '0 นาที', calories: 0, status: 'ยังไม่มีกิจกรรม', note: 'เริ่มต้นสัปดาห์ด้วยการขยับร่างกาย' },
+            { day: 'วันอังคาร', dist: 0.0, pace: "-", time: '0 นาที', calories: 0, status: 'ยังไม่มีกิจกรรม', note: 'วางแผนออกกำลังกายตามเป้าหมาย' },
+            { day: 'วันพุธ', dist: 0.0, pace: "-", time: '0 นาที', calories: 0, status: 'ยังไม่มีกิจกรรม', note: 'รักษาสปีดได้อย่างสม่ำเสมอ' },
+            { day: 'วันพฤหัสบดี', dist: 0.0, pace: "-", time: '0 นาที', calories: 0, status: 'ยังไม่มีกิจกรรม', note: 'พัฒนาความแข็งแรง' },
+            { day: 'วันศุกร์', dist: 0.0, pace: "-", time: '0 นาที', calories: 0, status: 'ยังไม่มีกิจกรรม', note: 'Easy Run ผ่อนคลายก่อนวันหยุด' },
+            { day: 'วันเสาร์', dist: 0.0, pace: "-", time: '0 นาที', calories: 0, status: 'ยังไม่มีกิจกรรม', note: 'กิจกรรมฟิตเนสวันหยุด' },
+            { day: 'วันอาทิตย์', dist: 0.0, pace: "-", time: '0 นาที', calories: 0, status: 'ยังไม่มีกิจกรรม', note: 'ส่งท้ายสัปดาห์ด้วยสุขภาพที่ดี' }
+        ],
+        steps: [
+            { day: 'วันจันทร์', steps: 0, distance: '0.0 กม.', calories: '0 kcal', status: 'ยังไม่มีบันทึก', note: 'ขยับก้าวแรกของสัปดาห์' },
+            { day: 'วันอังคาร', steps: 0, distance: '0.0 กม.', calories: '0 kcal', status: 'ยังไม่มีบันทึก', note: 'สะสมก้าวเดินระหว่างวัน' },
+            { day: 'วันพุธ', steps: 0, distance: '0.0 กม.', calories: '0 kcal', status: 'ยังไม่มีบันทึก', note: 'เดินสะสมเพื่อสุขภาพ' },
+            { day: 'วันพฤหัสบดี', steps: 0, distance: '0.0 กม.', calories: '0 kcal', status: 'ยังไม่มีบันทึก', note: 'รักษาระดับการเดินสม่ำเสมอ' },
+            { day: 'วันศุกร์', steps: 0, distance: '0.0 กม.', calories: '0 kcal', status: 'ยังไม่มีบันทึก', note: 'เดินคลายความตึงเครียด' },
+            { day: 'วันเสาร์', steps: 0, distance: '0.0 กม.', calories: '0 kcal', status: 'ยังไม่มีบันทึก', note: 'เดินท่องเที่ยวหรือพักผ่อน' },
+            { day: 'วันอาทิตย์', steps: 0, distance: '0.0 กม.', calories: '0 kcal', status: 'ยังไม่มีบันทึก', note: 'สะสมก้าวครบตามเป้าหมาย' }
+        ]
+    };
+}
+
 // 1. สมัครสมาชิกด้วย Firebase Auth และสร้างเอกสารข้อมูลผู้ใช้ใน Cloud Firestore
 async function dbRegisterUser(email, password, initialData) {
     if (!isFbInitialized || !fbAuth) {
@@ -105,20 +220,27 @@ async function dbRegisterUser(email, password, initialData) {
             await user.updateProfile({ displayName: initialData.name });
         }
 
-        // เตรียมข้อมูลเริ่มต้นสำหรับผู้ใช้ใหม่ใน Firestore
+        const freshStats = getFreshWeeklyStats();
+        const freshMissions = getFreshDefaultMissions();
+
+        // เตรียมข้อมูลเริ่มต้นสำหรับผู้ใช้ใหม่ใน Firestore (แยกสถิติและเหรียญรายคน)
         const userDocData = {
             uid: user.uid,
             email: email,
             name: initialData.name || email.split('@')[0],
-            age: initialData.age || 28,
+            age: initialData.age || 25,
             gender: initialData.gender || 'ชาย',
-            height: initialData.height || 175,
-            weight: initialData.weight || 72,
-            coins: initialData.coins !== undefined ? initialData.coins : 520,
-            totalAccumulatedEXP: initialData.totalAccumulatedEXP !== undefined ? initialData.totalAccumulatedEXP : 2450,
-            targetTDEEGoal: initialData.targetTDEEGoal || 2350,
+            height: initialData.height || 170,
+            weight: initialData.weight || 65,
+            phone: initialData.phone || '',
+            address: initialData.address || '',
+            coins: initialData.coins !== undefined ? initialData.coins : 0, // เริ่มต้น 0 เหรียญ ต้องทำภารกิจเพื่อรับเหรียญ
+            totalAccumulatedEXP: initialData.totalAccumulatedEXP !== undefined ? initialData.totalAccumulatedEXP : 0,
+            targetTDEEGoal: initialData.targetTDEEGoal || 2000,
             avatar: initialData.avatar || null,
-            missions: initialData.missions || {},
+            role: (email === 'admin@fithero.com' || initialData.role === 'admin') ? 'admin' : 'user',
+            missions: initialData.missions || freshMissions,
+            weeklyStats: initialData.weeklyStats || freshStats,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
         };
@@ -163,18 +285,25 @@ async function dbLoginUser(email, password) {
                 lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
             });
         } else {
-            // กรณีเอกสารยังไม่มี ให้สร้างขึ้นมาใหม่
+            // กรณีเอกสารยังไม่มี ให้สร้างขึ้นมาใหม่แบบแยกรายคน
+            const freshStats = getFreshWeeklyStats();
+            const freshMissions = getFreshDefaultMissions();
             userData = {
                 uid: user.uid,
                 email: email,
                 name: user.displayName || email.split('@')[0],
-                age: 28,
+                age: 25,
                 gender: 'ชาย',
-                height: 175,
-                weight: 72,
-                coins: 520,
-                totalAccumulatedEXP: 2450,
-                targetTDEEGoal: 2350,
+                height: 170,
+                weight: 65,
+                phone: '',
+                address: '',
+                coins: (email === 'admin@fithero.com') ? 9999 : 0, // สมาชิกเริ่มต้น 0 เหรียญ ต้องทำภารกิจเพื่อรับเหรียญ
+                totalAccumulatedEXP: (email === 'admin@fithero.com') ? 5000 : 0,
+                targetTDEEGoal: 2000,
+                role: (email === 'admin@fithero.com') ? 'admin' : 'user',
+                weeklyStats: freshStats,
+                missions: freshMissions,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
             };
@@ -189,6 +318,79 @@ async function dbLoginUser(email, password) {
             msg = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง';
         } else if (error.code === 'auth/invalid-email') {
             msg = 'รูปแบบอีเมลไม่ถูกต้อง';
+        }
+        return { success: false, error: error, message: msg };
+    }
+}
+
+// 2.1 เข้าสู่ระบบด้วย Google Sign-In API สำเร็จรูป (Firebase Auth Google Provider)
+async function dbLoginWithGoogle() {
+    if (!isFbInitialized || !fbAuth) {
+        return { success: false, mode: 'local', message: 'Firebase ยังไม่ได้เชื่อมต่อ กำลังใช้งาน LocalStorage' };
+    }
+
+    try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        const result = await fbAuth.signInWithPopup(provider);
+        const user = result.user;
+
+        const userDocRef = fbDb.collection('users').doc(user.uid);
+        const docSnap = await userDocRef.get();
+
+        let userData = null;
+        if (docSnap.exists) {
+            userData = docSnap.data();
+            const updates = {
+                lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            if (!userData.avatar && user.photoURL) {
+                updates.avatar = user.photoURL;
+                userData.avatar = user.photoURL;
+            }
+            await userDocRef.update(updates);
+        } else {
+            // ผู้ใช้ใหม่ผ่าน Google Sign-In
+            const freshStats = getFreshWeeklyStats();
+            const freshMissions = getFreshDefaultMissions();
+            const isAdmin = user.email === 'admin@fithero.com';
+
+            userData = {
+                uid: user.uid,
+                email: user.email,
+                name: user.displayName || user.email.split('@')[0],
+                avatar: user.photoURL || null,
+                age: 25,
+                gender: 'ชาย',
+                height: 170,
+                weight: 65,
+                phone: '',
+                address: '',
+                coins: isAdmin ? 9999 : 0, // เริ่มต้น 0 เหรียญ ต้องทำภารกิจเพื่อรับเหรียญ
+                totalAccumulatedEXP: isAdmin ? 5000 : 0,
+                targetTDEEGoal: 2000,
+                role: isAdmin ? 'admin' : 'user',
+                weeklyStats: freshStats,
+                missions: freshMissions,
+                authProvider: 'google',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            await userDocRef.set(userData);
+        }
+
+        return { success: true, user: user, data: userData };
+    } catch (error) {
+        console.error("Google Sign-In Error:", error);
+        let msg = error.message;
+        if (error.code === 'auth/popup-closed-by-user') {
+            msg = 'หน้าต่างล็อกอิน Google ถูกปิดก่อนทำรายการเสร็จ';
+        } else if (error.code === 'auth/cancelled-popup-request') {
+            msg = 'ยกเลิกคำขอล็อกอิน Google';
+        } else if (error.code === 'auth/popup-blocked') {
+            msg = 'เบราว์เซอร์บล็อกหน้าต่างป็อปอัป กรุณาอนุญาตป็อปอัปสำหรับเว็บไซต์นี้';
+        } else if (error.code === 'auth/operation-not-allowed') {
+            msg = 'ระบบ Google Sign-In ยังไม่ได้รับการเปิดใช้งานใน Firebase Console (Authentication > Sign-in method > Google)';
         }
         return { success: false, error: error, message: msg };
     }
@@ -487,18 +689,44 @@ async function dbCreateOrder(orderData) {
     }
 }
 
-// 19. อัปเดตสถานะคำขอแลกรางวัล
-async function dbUpdateOrderStatus(orderId, status) {
+// 19. อัปเดตสถานะและข้อมูลการจัดส่งคำขอแลกรางวัล (เช่น เลขพัสดุ, ผู้ให้บริการขนส่ง)
+async function dbUpdateOrderStatus(orderId, statusOrPayload, trackingNo = null, courier = null) {
     if (!isFbInitialized || !fbDb || !orderId) return false;
     try {
-        await fbDb.collection('orders').doc(orderId).update({
-            status: status,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        let updateData = {};
+        if (typeof statusOrPayload === 'object' && statusOrPayload !== null) {
+            updateData = { ...statusOrPayload };
+        } else {
+            updateData.status = statusOrPayload;
+            if (trackingNo !== null) updateData.trackingNo = trackingNo;
+            if (courier !== null) updateData.courier = courier;
+        }
+        updateData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+
+        await fbDb.collection('orders').doc(orderId).update(updateData);
         return true;
     } catch (error) {
         console.error("dbUpdateOrderStatus error:", error);
         return false;
+    }
+}
+
+// 19.1 Realtime Listener: ดึงประวัติการแลกและสถานะการจัดส่งเฉพาะของ User คนปัจจุบัน
+function dbListenUserOrders(uid, callback) {
+    if (!isFbInitialized || !fbDb || !uid) return null;
+    try {
+        return fbDb.collection('orders').where('userId', '==', uid).onSnapshot(snapshot => {
+            const userOrders = [];
+            snapshot.forEach(doc => {
+                userOrders.push({ id: doc.id, ...doc.data() });
+            });
+            // เรียงตามวันที่ล่าสุด
+            userOrders.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            callback(userOrders);
+        }, err => console.warn("dbListenUserOrders error:", err));
+    } catch (e) {
+        console.warn("dbListenUserOrders failed:", e);
+        return null;
     }
 }
 
@@ -575,5 +803,33 @@ async function dbRedeemProductTransaction(uid, productId, qty, totalCost, orderP
         return { success: false, message: error.message || 'เกิดข้อผิดพลาดในการทำรายการแลกของรางวัล' };
     }
 }
+
+// Window Global Exports
+window.dbLoginWithGoogle = dbLoginWithGoogle;
+window.dbLoginUser = dbLoginUser;
+window.dbRegisterUser = dbRegisterUser;
+window.dbLogoutUser = dbLogoutUser;
+window.dbSaveUserData = dbSaveUserData;
+window.dbLogActivity = dbLogActivity;
+window.dbLogRedemption = dbLogRedemption;
+window.dbListenUserDoc = dbListenUserDoc;
+window.dbListenAllUsers = dbListenAllUsers;
+window.dbAdjustUserCoins = dbAdjustUserCoins;
+window.dbDeleteUserDoc = dbDeleteUserDoc;
+window.dbListenProducts = dbListenProducts;
+window.dbSaveProduct = dbSaveProduct;
+window.dbDeleteProduct = dbDeleteProduct;
+window.dbListenMissions = dbListenMissions;
+window.dbSaveMission = dbSaveMission;
+window.dbDeleteMission = dbDeleteMission;
+window.dbListenOrders = dbListenOrders;
+window.dbListenUserOrders = dbListenUserOrders;
+window.dbCreateOrder = dbCreateOrder;
+window.dbUpdateOrderStatus = dbUpdateOrderStatus;
+window.dbDeleteOrder = dbDeleteOrder;
+window.dbRedeemProductTransaction = dbRedeemProductTransaction;
+window.getFreshDefaultMissions = getFreshDefaultMissions;
+window.getFreshWeeklyStats = getFreshWeeklyStats;
+
 
 

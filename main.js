@@ -81,6 +81,16 @@ window.setupRealtimeListeners = function(user, role) {
             }
         });
         if (unsubMissions) window.firestoreUnsubscribers.push(unsubMissions);
+        // ติดตามคำสั่งแลกของรางวัลเฉพาะของตนเอง (User Personal Orders) เพื่อดูสถานะการจัดส่งแบบ Realtime
+        if (typeof dbListenUserOrders === 'function') {
+            const unsubUserOrders = dbListenUserOrders(user.uid, (orders) => {
+                window.userPersonalOrders = orders;
+                if (typeof renderUserOrdersList === 'function') {
+                    renderUserOrdersList();
+                }
+            });
+            if (unsubUserOrders) window.firestoreUnsubscribers.push(unsubUserOrders);
+        }
     }
 
     // 4. สิทธิ์ Admin: ติดตาม Orders ทั้งหมด และรายชื่อผู้ใช้ทั้งหมด
@@ -89,6 +99,7 @@ window.setupRealtimeListeners = function(user, role) {
             const unsubOrders = dbListenOrders((orders) => {
                 window.redemptionOrdersData = orders;
                 if (typeof renderAdminOrdersTable === 'function') renderAdminOrdersTable();
+                if (typeof renderAdminOrders === 'function') renderAdminOrders();
                 if (typeof renderAdminStats === 'function') renderAdminStats();
             });
             if (unsubOrders) window.firestoreUnsubscribers.push(unsubOrders);
@@ -117,6 +128,7 @@ function initApp() {
         if (typeof calculateAndUpdateBMI === 'function') calculateAndUpdateBMI();
         if (typeof renderMissionsUI === 'function') renderMissionsUI();
         if (typeof renderStoreRewardsUI === 'function') renderStoreRewardsUI();
+        if (typeof renderTrackPageUI === 'function') renderTrackPageUI();
         if (typeof updateTDEEDisplay === 'function') updateTDEEDisplay();
         if (typeof updateStatsUI === 'function') updateStatsUI();
         if (typeof updateDatabaseStatusUI === 'function') updateDatabaseStatusUI();

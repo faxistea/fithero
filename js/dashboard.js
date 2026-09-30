@@ -2,7 +2,7 @@
    FitHero — Dashboard: Stats, Level/EXP, BMR, TDEE, Data Sync
    ========================================================================== */
 
-// ซิงค์ข้อมูลลง Cloud Firestore แบบ Debounce (Single Source of Truth)
+// ซิงค์ข้อมูลลง Cloud Firestore แบบ Debounce (Single Source of Truth เฉพาะบุคคล)
 window.syncDataToCloud = function() {
     if (typeof isFbInitialized !== 'undefined' && isFbInitialized && window.currentUserId) {
         clearTimeout(window.cloudSyncTimeout);
@@ -15,8 +15,14 @@ window.syncDataToCloud = function() {
                 gender: window.userProfileData.gender,
                 height: window.userProfileData.height,
                 weight: window.userProfileData.weight,
+                phone: window.userProfileData.phone || '',
+                address: window.userProfileData.address || '',
                 targetTDEEGoal: window.targetTDEEGoal,
-                missions: window.missionsDetailData
+                missions: window.missionsDetailData,
+                weeklyStats: {
+                    running: window.weeklyRunningData || [],
+                    steps: window.weeklyStepData || []
+                }
             };
             if (typeof dbSaveUserData === 'function') {
                 await dbSaveUserData(window.currentUserId, payload);
@@ -25,7 +31,7 @@ window.syncDataToCloud = function() {
     }
 };
 
-// นำข้อมูลจาก Firestore มาอัปเดตลง UI
+// นำข้อมูลจาก Firestore มาอัปเดตลง UI เฉพาะบัญชีของผู้ใช้คนนั้น
 window.applyUserDataToApp = function(data) {
     if (!data) return;
     if (data.role) {
@@ -39,6 +45,16 @@ window.applyUserDataToApp = function(data) {
     if (data.name) {
         userProfileData.name = data.name;
         document.querySelectorAll('.user-name-text').forEach(el => el.innerText = data.name);
+    }
+    if (data.phone !== undefined) {
+        userProfileData.phone = data.phone;
+        const viewPhone = document.getElementById('profile-view-phone');
+        if (viewPhone) viewPhone.innerText = data.phone || 'ยังไม่ได้ระบุ';
+    }
+    if (data.address !== undefined) {
+        userProfileData.address = data.address;
+        const viewAddress = document.getElementById('profile-view-address');
+        if (viewAddress) viewAddress.innerText = data.address || 'ยังไม่ได้ระบุที่อยู่จัดส่ง';
     }
     if (data.age) {
         userProfileData.age = data.age;
@@ -69,6 +85,17 @@ window.applyUserDataToApp = function(data) {
     if (data.targetTDEEGoal !== undefined) {
         window.targetTDEEGoal = Number(data.targetTDEEGoal);
     }
+
+    // สถิติรายสัปดาห์เฉพาะบัญชีผู้ใช้คนนี้ (User Isolated Stats)
+    if (data.weeklyStats && typeof data.weeklyStats === 'object') {
+        if (Array.isArray(data.weeklyStats.running) && data.weeklyStats.running.length > 0) {
+            window.weeklyRunningData = data.weeklyStats.running;
+        }
+        if (Array.isArray(data.weeklyStats.steps) && data.weeklyStats.steps.length > 0) {
+            window.weeklyStepData = data.weeklyStats.steps;
+        }
+    }
+
     if (data.missions && typeof data.missions === 'object') {
         for (const k in data.missions) {
             if (missionsDetailData[k]) {
@@ -76,7 +103,7 @@ window.applyUserDataToApp = function(data) {
             }
         }
     }
-    // รูปโปรไฟล์แยกเฉพาะบุคคล 100% (หากไม่มีรูปอัปโหลด จะใช้รูปตัวอักษรย่อเฉพาะบุคคลเสมอ ไม่ดึงรูปบัญชีอื่นมาแสดง)
+    // รูปโปรไฟล์แยกเฉพาะบุคคล 100%
     userProfileData.avatar = data.avatar || null;
     const resolvedAvatar = (typeof window.getUserAvatarUrl === 'function')
         ? window.getUserAvatarUrl(data.avatar, data.name || userProfileData.name)
@@ -89,6 +116,10 @@ window.applyUserDataToApp = function(data) {
     renderMissionsUI();
     updateTDEEDisplay();
     updateStatsUI();
+
+    if (typeof renderTrackPageUI === 'function') {
+        renderTrackPageUI();
+    }
 };
 
 // เริ่มต้นสถานะหน้าจอ (ข้อมูลจริงจะถูกซิงค์ผ่าน Firestore Realtime Listener ทันทีที่เชื่อมต่อ)

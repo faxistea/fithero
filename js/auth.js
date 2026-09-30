@@ -62,6 +62,61 @@ window.handleLoginSubmit = async function(event) {
     }
 };
 
+// 1.1 เข้าสู่ระบบด้วย Google Sign-In API สำเร็จรูป
+window.handleGoogleLoginSubmit = async function() {
+    if (typeof isFbInitialized === 'undefined' || !isFbInitialized) {
+        showAlert('⚠️ ฐานข้อมูล Firebase ยังไม่พร้อมใช้งาน กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+        return;
+    }
+
+    showAlert('⏳ กำลังเปิดหน้าต่าง Google Sign-In เพื่อเข้าสู่ระบบ...');
+    if (typeof dbLoginWithGoogle === 'function') {
+        const res = await dbLoginWithGoogle();
+        if (res.success) {
+            window.currentUser = res.user;
+            window.currentUserId = res.user.uid;
+            if (res.data) {
+                applyUserDataToApp(res.data);
+            }
+
+            const isAdmin = res.user.email === 'admin@fithero.com' || res.data?.role === 'admin';
+            window.currentUserRole = isAdmin ? 'admin' : 'user';
+
+            const sessionData = {
+                email: res.user.email,
+                name: userProfileData.name || res.data?.name || res.user.displayName || res.user.email.split('@')[0],
+                role: window.currentUserRole,
+                uid: res.user.uid,
+                mode: 'firebase',
+                isLoggedIn: true,
+                rememberMe: true,
+                avatar: res.data?.avatar || res.user.photoURL || null,
+                loginTime: Date.now()
+            };
+            localStorage.setItem('fithero_session', JSON.stringify(sessionData));
+
+            if (typeof window.setupRealtimeListeners === 'function') {
+                window.setupRealtimeListeners(res.user, window.currentUserRole);
+            }
+
+            updateDatabaseStatusUI();
+            const adminBtn = document.getElementById('profile-admin-btn');
+            if (isAdmin) {
+                if (adminBtn) adminBtn.classList.remove('hidden');
+                showAlert(`👑 ยินดีต้อนรับอาจารย์/ผู้ดูแลระบบ! เข้าสู่ระบบด้วย Google (${res.user.email}) สำเร็จ`);
+                navigateTo('page-admin');
+            } else {
+                if (adminBtn) adminBtn.classList.add('hidden');
+                showAlert(`🎉 เข้าสู่ระบบด้วย Google สำเร็จ! บัญชีของคุณ (${res.user.email}) ได้รับการรักษาความปลอดภัยเรียบร้อยแล้ว`);
+                navigateTo('page-dashboard');
+            }
+        } else {
+            console.warn("Google login failed, providing guidance:", res);
+            showAlert(`❌ เข้าสู่ระบบด้วย Google ไม่สำเร็จ: ${res.message}`);
+        }
+    }
+};
+
 window.handleRegistrationSubmit = async function(event) {
     event.preventDefault();
     const email = document.getElementById('reg-email').value.trim();
@@ -78,20 +133,31 @@ window.handleRegistrationSubmit = async function(event) {
         return;
     }
 
-    // สมัครสมาชิกผ่าน Firebase Cloud Firestore 100%
+    // สมัครสมาชิกผ่าน Firebase Cloud Firestore 100% (ข้อมูลแยกรายคน)
     if (typeof isFbInitialized !== 'undefined' && isFbInitialized) {
         showAlert('⏳ กำลังสมัครสมาชิกและสร้างบัญชีบน Cloud Firestore...');
+        
+        const freshMissions = (typeof window.getFreshDefaultMissions === 'function') 
+            ? window.getFreshDefaultMissions() 
+            : JSON.parse(JSON.stringify(window.defaultMissionsDetailData));
+        const freshStats = (typeof window.getFreshWeeklyStats === 'function') 
+            ? window.getFreshWeeklyStats() 
+            : null;
+
         const initialData = {
             name: email.split('@')[0],
-            age: 28,
+            age: 25,
             gender: 'ชาย',
-            height: 175,
-            weight: 72,
-            coins: 520,
+            height: 170,
+            weight: 65,
+            phone: '',
+            address: '',
+            coins: 0, // เริ่มต้นที่ 0 เหรียญ (ต้องทำภารกิจเพื่อรับเหรียญ)
             totalAccumulatedEXP: 0,
-            targetTDEEGoal: 2350,
+            targetTDEEGoal: 2000,
             role: (email === 'admin@fithero.com') ? 'admin' : 'user',
-            missions: missionsDetailData
+            missions: freshMissions,
+            weeklyStats: freshStats
         };
 
         const res = await dbRegisterUser(email, password, initialData);
@@ -101,7 +167,7 @@ window.handleRegistrationSubmit = async function(event) {
             const loginEmailInput = document.getElementById('email');
             if (loginEmailInput) loginEmailInput.value = email;
             updateDatabaseStatusUI();
-            showAlert(`🎉 สมัครสมาชิกสำเร็จ! บัญชี (${email}) ถูกสร้างขึ้นบน Firebase Cloud Firestore เรียบร้อยแล้ว สามารถเข้าสู่ระบบได้ทันที`);
+            showAlert(`🎉 สมัครสมาชิกสำเร็จ! บัญชี (${email}) พร้อมเริ่มต้นทำภารกิจสุขภาพเพื่อสะสมเหรียญรางวัล`);
             navigateTo('page-login');
             return;
         } else {

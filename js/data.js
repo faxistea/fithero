@@ -3,12 +3,12 @@
    ========================================================================== */
 
 // ข้อมูลสถานะรวม (Shared State)
-window.userCoins = 520;
-window.totalAccumulatedEXP = 2450;
+window.userCoins = 0;
+window.totalAccumulatedEXP = 0;
 window.currentStep = 1;
 window.currentBMRMode = 'daily';
 window.dailyBMR = 1840;
-window.targetTDEEGoal = 2350;
+window.targetTDEEGoal = 2000;
 
 window.userProfileData = {
     name: 'Alex Rivers',
@@ -87,7 +87,7 @@ window.meditationTimerInterval = null;
 window.meditationSecondsLeft = 300;
 window.isMeditationRunning = false;
 
-// ข้อมูลภารกิจเริ่มต้นทั้งหมด
+// ข้อมูลภารกิจเริ่มต้นทั้งหมด (เริ่มต้นที่ 0 และ pending เพื่อให้สมาชิกแต่ละคนทำเอง)
 window.defaultMissionsDetailData = {
     'run20k': {
         id: 'run20k',
@@ -97,11 +97,11 @@ window.defaultMissionsDetailData = {
         rewardText: '+150 EXP • +50 เหรียญ',
         icon: '🏃‍♂️',
         condition: 'weekly_running_distance >= 20.0 km',
-        detection: 'Sync ข้อมูล GPS / Run Tracking จากแอป หรือ Apple Health / Google Fit',
-        currentVal: 24.0,
+        detection: 'Sync ข้อมูล GPS / Run Tracking จากแอป หรือบันทึกระยะทางวิ่ง',
+        currentVal: 0.0,
         targetVal: 20.0,
         unit: 'km',
-        status: 'completed',
+        status: 'pending',
         exp: 150,
         coins: 50,
         tip: '💡 Tip: การวิ่งสะสมระยะทางสม่ำเสมอช่วยพัฒนาความแข็งแรงของระบบหัวใจและปอดได้อย่างมีประสิทธิภาพ'
@@ -114,11 +114,11 @@ window.defaultMissionsDetailData = {
         rewardText: '+50 EXP • +20 เหรียญ',
         icon: '🚶‍♂️',
         condition: 'daily_step_count >= 5000 ก้าว',
-        detection: 'Sync ข้อมูลจาก Pedometer Sensor ของสมาร์ทโฟน/นาฬิกาอัจฉริยะ',
-        currentVal: 9420,
+        detection: 'Sync ข้อมูลจาก Pedometer Sensor ของสมาร์ทโฟนหรือกดบันทึกก้าวเดิน',
+        currentVal: 0,
         targetVal: 5000,
         unit: 'ก้าว',
-        status: 'completed',
+        status: 'pending',
         exp: 50,
         coins: 20,
         tip: '💡 Tip: การเดินวันละ 5,000 ก้าวขึ้นไป ช่วยกระตุ้นการเผาผลาญและระบบหมุนเวียนโลหิตตลอดวัน'
@@ -132,7 +132,7 @@ window.defaultMissionsDetailData = {
         icon: '💧',
         condition: 'daily_water_volume >= 2.0 ลิตร',
         detection: 'Manual Input (กดบันทึกดื่มน้ำ) หรือ ดึงข้อมูลจาก Health API',
-        currentVal: 0.9,
+        currentVal: 0.0,
         targetVal: 2.0,
         unit: 'L',
         status: 'pending',
@@ -198,12 +198,21 @@ window.resetAppStateToDefaults = function() {
     window.targetTDEEGoal = 2000;
     window.userProfileData = {
         name: 'FitHero Member',
-        age: 28,
+        age: 25,
         gender: 'ชาย',
-        height: 175,
-        weight: 72,
+        height: 170,
+        weight: 65,
+        phone: '',
+        address: '',
         avatar: null
     };
+
+    // รีเซ็ตสถิติการวิ่งและก้าวเดินเฉพาะบุคคลเป็น 0
+    if (typeof window.getFreshWeeklyStats === 'function') {
+        const fresh = window.getFreshWeeklyStats();
+        window.weeklyRunningData = fresh.running;
+        window.weeklyStepData = fresh.steps;
+    }
 
     // รีเซ็ตภาพโปรไฟล์ใน DOM กลับเป็นค่าเริ่มต้นของระบบทันที ป้องกันรูปโปรไฟล์ตกค้างข้ามบัญชี
     const defaultAvatar = (typeof window.getUserAvatarUrl === 'function')
@@ -219,7 +228,12 @@ window.resetAppStateToDefaults = function() {
     window.missionsDetailData = JSON.parse(JSON.stringify(window.defaultMissionsDetailData));
     window.storeProductsData = JSON.parse(JSON.stringify(window.defaultStoreProducts));
     window.redemptionOrdersData = [];
+    window.userPersonalOrders = [];
     window.adminUsersList = [];
+
+    if (typeof renderTrackPageUI === 'function') {
+        renderTrackPageUI();
+    }
 };
 
 

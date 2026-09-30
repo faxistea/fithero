@@ -51,7 +51,7 @@ window.renderAdminOverview = function() {
     if (window.firestoreUsersList && window.firestoreUsersList.length > 0) {
         totalCoins = window.firestoreUsersList.reduce((acc, u) => acc + (Number(u.coins) || 0), 0);
     } else {
-        totalCoins = window.userCoins || 520;
+        totalCoins = window.userCoins || 0;
     }
 
     // สรุปตัวเลข KPI
@@ -509,14 +509,14 @@ window.adminDeleteProduct = async function(index) {
     }
 };
 
-// === 6. Redemption Orders Management Tab ===
+// === 6. Redemption Orders & Delivery Management Tab ===
 window.renderAdminOrders = function() {
     const tbody = document.getElementById('admin-orders-tbody');
     if (!tbody) return;
 
     const orders = window.redemptionOrdersData || [];
     if (orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-xs text-on-surface-variant">ไม่มีรายการคำขอแลกของรางวัล</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-xs text-on-surface-variant">ไม่มีรายการคำขอแลกของรางวัล</td></tr>';
         return;
     }
 
@@ -529,33 +529,65 @@ window.renderAdminOrders = function() {
             minute: '2-digit'
         });
 
+        const addressText = o.address || 'จัดส่งตามที่อยู่โปรไฟล์';
+        const phoneText = o.phone || '-';
+        const receiverName = o.receiverName || o.userName || o.userEmail.split('@')[0];
+
         return `
             <tr class="border-b border-outline-variant/20 hover:bg-surface-container-low/50 transition-colors">
-                <td class="p-3 text-xs">
+                <td class="p-3 text-xs align-top">
                     <span class="font-mono font-bold text-primary">${o.id}</span>
                     <p class="text-[10px] text-on-surface-variant mt-0.5">${orderDate}</p>
                 </td>
-                <td class="p-3 text-xs">
-                    <p class="font-bold text-on-surface">${o.userName || o.userEmail.split('@')[0]}</p>
-                    <p class="text-[11px] text-on-surface-variant">${o.userEmail}</p>
+                <td class="p-3 text-xs align-top">
+                    <p class="font-bold text-on-surface">${receiverName}</p>
+                    <p class="text-[11px] text-primary font-semibold">📞 ${phoneText}</p>
+                    <p class="text-[10px] text-on-surface-variant">${o.userEmail}</p>
                 </td>
-                <td class="p-3 text-xs">
+                <td class="p-3 text-xs align-top max-w-[200px]">
+                    <div class="bg-surface p-2 rounded-lg border border-outline-variant/30 text-[11px] space-y-1">
+                        <p class="text-on-surface leading-relaxed break-words">${addressText}</p>
+                        <button onclick="navigator.clipboard.writeText('${receiverName} โทร: ${phoneText} ที่อยู่: ${addressText}'); showSnackbar('📋 คัดลอกข้อมูลจัดส่งเรียบร้อย')" class="mt-1 text-[10px] text-primary hover:underline font-bold flex items-center gap-0.5">
+                            <span class="material-symbols-outlined text-xs">content_copy</span>
+                            <span>คัดลอกที่อยู่พิมพ์หน้ากล่อง</span>
+                        </button>
+                    </div>
+                </td>
+                <td class="p-3 text-xs align-top">
                     <div class="flex items-center gap-2.5">
-                        <img src="${o.productImage || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=150&q=80'}" class="w-9 h-9 rounded-lg object-cover border" />
+                        <img src="${o.productImage || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=150&q=80'}" class="w-10 h-10 rounded-lg object-cover border flex-shrink-0" />
                         <div>
                             <p class="font-bold text-on-surface">${o.productName}</p>
-                            <p class="text-[10px] text-on-surface-variant">${o.details || '1 ชิ้น'} • <span class="text-tertiary font-bold">${o.coinsSpent} 🪙</span></p>
+                            <p class="text-[10px] text-on-surface-variant">${o.details || (o.quantity ? `${o.quantity} ชิ้น` : '1 ชิ้น')} • <span class="text-tertiary font-bold">${o.coinsSpent} 🪙</span></p>
                         </div>
                     </div>
                 </td>
-                <td class="p-3 text-xs">
-                    <select onchange="adminUpdateOrderStatus('${o.id}', this.value, ${idx})" class="text-[11px] font-bold rounded-lg border border-outline-variant/40 p-1.5 ${o.status === 'completed' ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'}">
-                        <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>⏳ รอดำเนินการ</option>
-                        <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>✅ จัดส่งเรียบร้อย</option>
-                        <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>❌ ยกเลิกรายการ</option>
-                    </select>
+                <td class="p-3 text-xs align-top space-y-1.5">
+                    <div class="flex flex-col gap-1">
+                        <select id="admin-order-status-${idx}" onchange="adminUpdateOrderStatus('${o.id}', this.value, ${idx})" class="text-[11px] font-bold rounded-lg border border-outline-variant/40 p-1.5 ${o.status === 'completed' ? 'bg-emerald-50 text-emerald-800' : (o.status === 'shipped' ? 'bg-blue-50 text-blue-800' : 'bg-amber-50 text-amber-800')}">
+                            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>⏳ รอดำเนินการ</option>
+                            <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>📦 กำลังเตรียมพัสดุ</option>
+                            <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>🚚 จัดส่งแล้ว</option>
+                            <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>✅ จัดส่งสำเร็จ</option>
+                            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>❌ ยกเลิกรายการ</option>
+                        </select>
+
+                        <!-- ช่องใส่เลข Tracking -->
+                        <div class="flex items-center gap-1 mt-1">
+                            <select id="admin-courier-${idx}" class="text-[10px] p-1 bg-surface border border-outline-variant/40 rounded">
+                                <option value="Flash Express" ${(o.courier || '').includes('Flash') ? 'selected' : ''}>Flash</option>
+                                <option value="Kerry Express" ${(o.courier || '').includes('Kerry') ? 'selected' : ''}>Kerry</option>
+                                <option value="ไปรษณีย์ไทย EMS" ${(o.courier || '').includes('ไปรษณีย์') ? 'selected' : ''}>EMS</option>
+                                <option value="J&T Express" ${(o.courier || '').includes('J&T') ? 'selected' : ''}>J&T</option>
+                            </select>
+                            <input id="admin-tracking-${idx}" type="text" placeholder="เลขพัสดุ (Tracking No.)" value="${o.trackingNo || ''}" class="text-[10px] p-1 bg-surface border border-outline-variant/40 rounded w-28 font-mono">
+                            <button onclick="adminSaveTracking('${o.id}', ${idx})" class="px-2 py-1 bg-primary text-white text-[10px] font-bold rounded hover:bg-primary/90 transition-all" title="บันทึกเลขพัสดุ">
+                                บันทึก
+                            </button>
+                        </div>
+                    </div>
                 </td>
-                <td class="p-3 text-xs">
+                <td class="p-3 text-xs align-top">
                     <button onclick="adminDeleteOrder('${o.id}', ${idx})" class="p-1 hover:bg-error-container/20 text-error rounded-md transition-all" title="ลบรายการ">
                         <span class="material-symbols-outlined text-base">delete</span>
                     </button>
@@ -563,6 +595,36 @@ window.renderAdminOrders = function() {
             </tr>
         `;
     }).join('');
+};
+
+window.adminSaveTracking = async function(orderId, orderIndex) {
+    const courierSelect = document.getElementById(`admin-courier-${orderIndex}`);
+    const trackingInput = document.getElementById(`admin-tracking-${orderIndex}`);
+    const courier = courierSelect ? courierSelect.value : 'Flash Express';
+    const trackingNo = trackingInput ? trackingInput.value.trim() : '';
+
+    if (!trackingNo) {
+        showAlert('❌ กรุณากรอกเลขพัสดุก่อนกดบันทึก');
+        return;
+    }
+
+    if (typeof dbUpdateOrderStatus === 'function') {
+        await dbUpdateOrderStatus(orderId, {
+            courier: courier,
+            trackingNo: trackingNo,
+            status: 'shipped'
+        });
+    }
+
+    if (window.redemptionOrdersData && window.redemptionOrdersData[orderIndex]) {
+        window.redemptionOrdersData[orderIndex].courier = courier;
+        window.redemptionOrdersData[orderIndex].trackingNo = trackingNo;
+        window.redemptionOrdersData[orderIndex].status = 'shipped';
+    }
+
+    showSnackbar(`🚚 บันทึกเลขพัสดุ ${trackingNo} (${courier}) เรียบร้อยแล้ว`);
+    renderAdminOrders();
+    renderAdminOverview();
 };
 
 window.adminUpdateOrderStatus = async function(orderId, newStatus, orderIndex) {
@@ -574,7 +636,7 @@ window.adminUpdateOrderStatus = async function(orderId, newStatus, orderIndex) {
         window.redemptionOrdersData[orderIndex].status = newStatus;
     }
 
-    showSnackbar(`📦 อัปเดตสถานะคำขอแลกเป็น "${newStatus === 'completed' ? 'จัดส่งเรียบร้อย' : (newStatus === 'cancelled' ? 'ยกเลิก' : 'รอดำเนินการ')}" สำเร็จ`);
+    showSnackbar(`📦 อัปเดตสถานะคำขอแลกเป็น "${newStatus === 'completed' ? 'จัดส่งเรียบร้อย' : (newStatus === 'shipped' ? 'กำลังจัดส่ง' : (newStatus === 'cancelled' ? 'ยกเลิก' : 'รอดำเนินการ'))}" สำเร็จ`);
     renderAdminOrders();
     renderAdminOverview();
 };
@@ -594,4 +656,11 @@ window.adminDeleteOrder = async function(orderId, orderIndex) {
         showSnackbar('🗑️ ลบรายการแลกจาก Cloud Firestore เรียบร้อยแล้ว');
     }
 };
+
+// ทางลัดสำหรับอาจารย์/ผู้ดูแลระบบ เพื่อไปยังแท็บจัดการการจัดส่งของรางวัลทันที
+window.switchToAdminDeliveryTab = function() {
+    navigateTo('page-admin');
+    switchAdminTab('orders');
+};
+
 

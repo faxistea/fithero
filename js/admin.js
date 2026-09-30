@@ -225,6 +225,52 @@ window.adminDeleteUser = async function(uid, email) {
     }
 };
 
+window.adminResetAllMembersCoins = async function() {
+    if (!confirm('⚠️ ยืนยันการรีเซ็ตเหรียญสมาชิกทุกคนให้เริ่มต้นที่ 0 เหรียญ?\n\nการกระทำนี้จะลบเหรียญที่สมาชิกมีอยู่ทั้งหมดให้กลับเป็น 0 เหรียญ และภารกิจจะกลับไปเริ่มต้นใหม่ ซึ่งสมาชิกทุกคนต้องทำภารกิจจึงจะได้รับเหรียญรางวัล')) {
+        return;
+    }
+
+    if (typeof dbResetAllUsersCoinsToZero === 'function') {
+        if (typeof showCustomAlert === 'function') {
+            showCustomAlert('⏳ กำลังรีเซ็ตเหรียญสมาชิกทุกคนบน Cloud Firestore...', 'info');
+        }
+        const res = await dbResetAllUsersCoinsToZero();
+        if (res.success) {
+            if (window.adminUsersList) {
+                window.adminUsersList.forEach(u => {
+                    u.coins = 0;
+                    u.totalAccumulatedEXP = 0;
+                });
+            }
+            if (window.firestoreUsersList) {
+                window.firestoreUsersList.forEach(u => {
+                    u.coins = 0;
+                    u.totalAccumulatedEXP = 0;
+                });
+            }
+            if (window.currentUser) {
+                window.userCoins = 0;
+                window.totalAccumulatedEXP = 0;
+                if (typeof updateStatsUI === 'function') updateStatsUI();
+            }
+            renderAdminUsersTable();
+            renderAdminOverview();
+            if (typeof showCustomAlert === 'function') {
+                showCustomAlert(`✅ รีเซ็ตเหรียญสมาชิกสำเร็จทั้งหมด ${res.count} บัญชี ให้เริ่มต้นที่ 0 เหรียญเรียบร้อยแล้ว`, 'success');
+            } else {
+                alert(`✅ รีเซ็ตเหรียญสมาชิกสำเร็จทั้งหมด ${res.count} บัญชี ให้เริ่มต้นที่ 0 เหรียญเรียบร้อยแล้ว`);
+            }
+        } else {
+            alert('❌ เกิดข้อผิดพลาดในการรีเซ็ตเหรียญ: ' + res.message);
+        }
+    } else {
+        window.userCoins = 0;
+        window.totalAccumulatedEXP = 0;
+        if (typeof updateStatsUI === 'function') updateStatsUI();
+        alert('✅ รีเซ็ตเหรียญเป็น 0 เรียบร้อยแล้ว');
+    }
+};
+
 // === 4. Missions Management Tab ===
 window.renderAdminMissions = function() {
     const container = document.getElementById('admin-missions-list');

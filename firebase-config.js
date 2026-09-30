@@ -519,6 +519,35 @@ async function dbAdjustUserCoins(uid, amount) {
     }
 }
 
+// 9.1 Admin รีเซ็ตเหรียญและภารกิจเริ่มต้นของสมาชิกทุกคนเป็น 0 (ต้องทำภารกิจถึงจะได้เหรียญ)
+async function dbResetAllUsersCoinsToZero() {
+    if (!isFbInitialized || !fbDb) return { success: false, message: 'ไม่ได้เชื่อมต่อ Firebase' };
+    try {
+        const snapshot = await fbDb.collection('users').get();
+        const batch = fbDb.batch();
+        let count = 0;
+        const freshMissions = getFreshDefaultMissions();
+        const freshStats = getFreshWeeklyStats();
+
+        snapshot.forEach(docSnap => {
+            batch.update(docSnap.ref, {
+                coins: 0,
+                totalAccumulatedEXP: 0,
+                missions: freshMissions,
+                weeklyStats: freshStats,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            count++;
+        });
+
+        await batch.commit();
+        return { success: true, count: count };
+    } catch (error) {
+        console.error("dbResetAllUsersCoinsToZero error:", error);
+        return { success: false, message: error.message };
+    }
+}
+
 // 10. Admin ลบเอกสารผู้ใช้
 async function dbDeleteUserDoc(uid) {
     if (!isFbInitialized || !fbDb || !uid) return false;
@@ -830,6 +859,7 @@ window.dbDeleteOrder = dbDeleteOrder;
 window.dbRedeemProductTransaction = dbRedeemProductTransaction;
 window.getFreshDefaultMissions = getFreshDefaultMissions;
 window.getFreshWeeklyStats = getFreshWeeklyStats;
+window.dbResetAllUsersCoinsToZero = dbResetAllUsersCoinsToZero;
 
 
 
